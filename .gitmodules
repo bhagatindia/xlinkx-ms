@@ -1,3 +1,6 @@
 [submodule "hardklor"]
 	path = hardklor
 	url = https://github.com/mhoopmann/hardklor
+[submodule "mstoolkit"]
+	path = mstoolkit
+	url = https://github.com/mhoopmann/mstoolkit.git
