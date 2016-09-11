@@ -1,5 +1,5 @@
 CXX = g++
-MSTOOLKIT = msToolkit
+MSTOOLKIT = mstoolkit
 override CXXFLAGS += -O3 -Wall -Wextra -static -Wno-char-subscripts -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D__LINUX__ -I$(MSTOOLKIT)/include
 EXECNAME = xlinkx.exe
 OBJS = xlinkx.o
@@ -12,6 +12,7 @@ ifdef MSYSTEM
 endif
 
 xlinkx.exe: $(OBJS)
+	git submodule init; git submodule update
 	cd $(MSTOOLKIT) ; make lite 
 	${CXX} $(CXXFLAGS) $(OBJS) $(LIBPATHS) $(LIBS) -o ${EXECNAME}
 
