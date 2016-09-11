@@ -17,6 +17,7 @@ xlinkx.exe: $(OBJS)
 	${CXX} $(CXXFLAGS) $(OBJS) $(LIBPATHS) $(LIBS) -o ${EXECNAME}
 
 xlinkx.o: xlinkx.cpp $(DEPS)
+	git submodule init; git submodule update
 	${CXX} ${CXXFLAGS} xlinkx.cpp -c
 
 clean:
