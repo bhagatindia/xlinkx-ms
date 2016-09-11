@@ -1,0 +1,3 @@
+[submodule "hardklor"]
+	path = hardklor
+	url = https://github.com/mhoopmann/hardklor
