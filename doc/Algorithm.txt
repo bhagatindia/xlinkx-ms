@@ -1,0 +1,30 @@
+Graph based algorithms
+
+Peptide sequence matching
+
+Algorithm 1
+-----------
+1. A graph based index will be created as per the cut and the sequence being used
+2. Each node corresponds to the sequence seen till now
+TBD FIXME
+
+Algorithm 2
+-----------
+
+Graph construction
+1. A graph based index will be created as per the cut and the sequence being used
+2. Each node in the graph represents an amino acid
+3. Two nodes are connected:
+	a. If there is a protein with these two amino acids being adjacent
+	b. The weight of this edge is equal to the mass of the amino acid
+4. Mark all the cut amino acids as terminal nodes
+5. Create an exhaustive list of nodes by going through all the proteins in a sequence
+6. The resulting graph will be a Directed Acyclic Graph
+
+Search for an ms/ms with the given precursor mass and the peaks
+1. Start from the root node
+2. Based on the peaks present in ms/ms, considering the tolerance, traverse the edges
+3. Record the paths from root to all the terminal nodes
+4. These are the candidate sequences with the tolerance
+
+We can extend and optimize it further using a modified version of KMP algorithm
