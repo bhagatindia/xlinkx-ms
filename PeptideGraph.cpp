@@ -38,6 +38,34 @@ int ppsg_add_peptide_sequence (pep_graph *pg, protein_data *protein, std::string
 
 static int ppsg_num_graph_nodes = 0;
 
+int pp_amino_acid_mass[MAX_EDGES] = { 	71, //A 
+					99999, //B not there
+					103, //C
+					115, //D
+					129, //E
+					147, //F
+					57, //G
+					137, //H
+					113, //I
+					99999, //J
+					128, //K
+					113, //L
+					131, //M
+					114, //N
+					132, //O
+					97, //P
+					128, //Q
+					156, //R
+					87, //S
+					101, //T
+					99999, //U
+					99, //V
+					186, //W
+					99999, //X
+					163, //Y
+					99999 //Z 
+				};
+
 void ppsg_split(std::string str, std::string splitBy, std::vector<std::string>& tokens)
 {
 	/* Store the original string in the array, so we can loop the rest
@@ -164,6 +192,26 @@ int ppsg_add_peptide_sequence (pep_graph *pg, protein_data *protein, std::string
 	}
 }
 
+void ppsg_find_proteins_precursor_mass (pep_graph *pg, int pmass, int cmass, string pep_seq)
+{
+	for (int i = 0; i < MAX_EDGES; i++) {
+		// For all edges, if there is a valid edge
+		if ((pg->pg_edge_neighbor)[i] != NULL) {
+			// If the mass with that amino acid is less than or equal to, recurse and check terminal
+			if ((cmass + pp_amino_acid_mass[i]) < pmass) {
+				char end_char = 'A' + pp_amino_acid_mass[i];
+				ppsg_find_proteins_precursor_mass((pg->pg_edge_neighbor)[i], pmass, cmass + pp_amino_acid_mass[i], pep_seq + end_char);
+
+				if ((pg->pg_protein_list).size() > 0) {
+					for (protein_data *protein : pg->pg_protein_list) {
+						cout << protein->pr_id << endl;
+					}
+				}
+			}
+		}
+	}
+}
+
 int main() 
 {
 	cout << "Size of the node PepGraph is " << sizeof(pep_graph) << endl;
@@ -191,4 +239,12 @@ int main()
 	ppsg_add_protein_database_graph(pg, data);
 
 	cout << "Number of graph nodes " << ppsg_num_graph_nodes << endl;
+
+	int precursor_mass;
+
+	while (1) {
+		cin >> precursor_mass;
+
+		ppsg_find_proteins_precursor_mass(pg, precursor_mass, 0, "");
+	}
 }
