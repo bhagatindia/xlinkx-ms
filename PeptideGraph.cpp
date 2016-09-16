@@ -114,6 +114,7 @@ void ppsg_add_protein_database_graph (pep_graph *pg, data_t data)
 			if (token.length() == 0) continue;
 			ppsg_add_peptide_sequence(pg, protein, token, 0);
 		}
+		split_tokens.clear();
 	}
 }
 

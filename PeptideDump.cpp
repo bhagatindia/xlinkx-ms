@@ -112,10 +112,10 @@ void ppsg_add_protein_database_graph (pep_graph *pg, data_t data)
 		cout << "Protein number is " << count++ << " and it is " << protein->pr_pep_sequence << endl;
 		ppsg_split(protein->pr_pep_sequence, split_char, split_tokens);
 		for (string token : split_tokens) {
-			// cout << "Token is " << token << endl;
 			if (token.length() == 0) continue;
 			ofs << token << endl;
 		}
+		split_tokens.clear();
 	}
 }
 
