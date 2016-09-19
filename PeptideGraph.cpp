@@ -15,29 +15,34 @@
 
 #define PEPG_FLAG_TERMINAL 0x01
 
-#define IS_PEPG_NODE_TERMINAL(x) ((((pep_graph *)x->pg_edge_neighbor)[PEPG_FLAG_NODE_INDEX]) & (PEPG_FLAG_TERMINAL))
-#define SET_PEPG_NODE_TERMINAL(x) ((((pep_graph *)x->pg_edge_neighbor)[PEPG_FLAG_NODE_INDEX]) |= (PEPG_FLAG_TERMINAL))
+#define IS_PEPG_NODE_TERMINAL(x) ((((protein_pep_sequence_graph *)x->pg_edge_neighbor)[PEPG_FLAG_NODE_INDEX]) & (PEPG_FLAG_TERMINAL))
+#define SET_PEPG_NODE_TERMINAL(x) ((((protein_pep_sequence_graph *)x->pg_edge_neighbor)[PEPG_FLAG_NODE_INDEX]) |= (PEPG_FLAG_TERMINAL))
 
 using namespace std;
 
 struct protein_data {
-	string pr_id;
-	string pr_pep_sequence;
+	string prd_id;
+	string prd_pep_sequence;
 };
 
 typedef vector<protein_data *> data_t;
 
+struct protein_pep_sequence {
+	protein_data*	pps_protein;
+	int		pps_start, pps_length;
+};
+
 /*
  * Graph node to handle the adjacency list
  */
-struct pep_graph {
-	pep_graph 		*pg_edge_neighbor[MAX_EDGES];
-	set<protein_data*>	pg_protein_list;
+struct protein_pep_sequence_graph {
+	protein_pep_sequence_graph* 			pg_edge_neighbor[MAX_EDGES];
+	set<protein_pep_sequence*>			pg_pps_list;
 };
 
-int ppsg_add_peptide_sequence (pep_graph *pg, protein_data *protein, std::string &peptide_seq, int pos);
+int ppsg_add_peptide_sequence (protein_pep_sequence_graph *pg, protein_pep_sequence *peptide_seq, int pos);
 
-static int ppsg_num_graph_nodes = 0;
+static int ppsg_num_graph_nodes = 0, ppsg_num_peptides = 0;
 
 int pp_amino_acid_mass[MAX_EDGES] = { 	71, //A 
 					99999, //B not there
@@ -67,7 +72,7 @@ int pp_amino_acid_mass[MAX_EDGES] = { 	71, //A
 					99999 //Z 
 				};
 
-void ppsg_split(std::string str, std::string splitBy, std::vector<std::string>& tokens)
+void ppsg_split_string(std::string str, std::string splitBy, std::vector<std::string>& tokens)
 {
 	/* Store the original string in the array, so we can loop the rest
 	 * of the algorithm. */
@@ -102,13 +107,50 @@ void ppsg_split(std::string str, std::string splitBy, std::vector<std::string>& 
 	}
 }
 
+void ppsg_split_peptides(protein_data* protein, std::string splitBy, std::vector<protein_pep_sequence*> &tokens)
+{
+	// Store the split index in a 'size_t' (unsigned integer) type.
+	size_t splitAt;
+	// Store the size of what we're splicing out. One character is good enough.
+	size_t splitLen = 1;
+	// Create a string for temporarily storing the fragment we're processing.
+	std::string frag = protein->prd_pep_sequence;
+
+	int cur_start = 0;
+
+	// Loop infinitely - break is internal.
+	while(true)
+	{
+		protein_pep_sequence* pps = new protein_pep_sequence;
+		ppsg_num_peptides++;
+
+		pps->pps_protein = protein;
+		pps->pps_start = cur_start;
+		tokens.push_back(pps);
+
+		splitAt = frag.find_first_of(splitBy);
+		// If we didn't find a new split point...
+		if((splitAt == string::npos) || (splitAt == frag.size() - 1))
+		{
+			// Break the loop and (implicitly) return.
+			pps->pps_length = frag.size();
+			break;
+		}
+		pps->pps_length = splitAt+splitLen;
+		/* Push everything from the right side of the split to the next empty
+		 * index in the vector. */
+		frag = frag.substr(splitAt+splitLen, frag.size()-(splitAt+splitLen));
+		cur_start += pps->pps_length;
+	}
+}
+
 void ppsg_read_protein_database(string file, data_t& data)
 {
 	// For every record we can read from the file, append it to our resulting data
 	protein_data *record, *old_record;
 
 	std::ifstream fstream(file.c_str());
-	std::string line, pr_id, pr_seq;	
+	std::string line, prd_id, pr_seq;	
 
 	string split_char = " ";
 	vector<string> split_tokens;
@@ -118,12 +160,13 @@ void ppsg_read_protein_database(string file, data_t& data)
 			// terminate old sequence if it was started 
 			record = new protein_data;
 			data.push_back(record);
-			ppsg_split(line, split_char, split_tokens);
-			record->pr_id = split_tokens[0];
+			ppsg_split_string(line, split_char, split_tokens);
+			record->prd_id = split_tokens[0];
 		} else {
 			// append or start a new one
-			(record->pr_pep_sequence).append(line);
+			(record->prd_pep_sequence).append(line);
 		}
+		split_tokens.clear();
 	}
 
 	return;
@@ -131,39 +174,36 @@ void ppsg_read_protein_database(string file, data_t& data)
 
 #define PRINT_PROTEIN_STATUS 10000
 
-void ppsg_add_protein_database_graph (pep_graph *pg, data_t data)
+void ppsg_add_protein_database_graph (protein_pep_sequence_graph *pg, data_t data)
 {
 	string split_char = "KR";
-	vector<string> split_tokens;
+	vector<protein_pep_sequence*> split_peptides;
 
 	std::ofstream ofs;
 	ofs.open("peptide_sequence_dump.txt", std::ofstream::out | std::ofstream::app);
 
 	int count = 0;
 	for (protein_data *protein : data) {
-		// cout << "Protein number is " << count << " and it is " << protein->pr_pep_sequence << endl;
+		// cout << "Protein number is " << count << " and it is " << protein->prd_pep_sequence << endl;
 		if (count % PRINT_PROTEIN_STATUS == 0)
 			cout << "Reading protein " << count << endl;
 
-		ppsg_split(protein->pr_pep_sequence, split_char, split_tokens);
-		for (string token : split_tokens) {
+		ppsg_split_peptides(protein, split_char, split_peptides);
+		for (protein_pep_sequence* peptide : split_peptides) {
 			// cout << "Token is " << token << endl;
-			if (token.length() == 0) continue;
-			ppsg_add_peptide_sequence(pg, protein, token, 0);
-			ofs << token << endl;
+			ppsg_add_peptide_sequence(pg, peptide, 0);
+			ofs << "Protein ID: " << peptide->pps_protein->prd_id << " Start = " << 
+				peptide->pps_start << " End = " << peptide->pps_start + peptide->pps_length - 1 << " " <<  
+				(peptide->pps_protein->prd_pep_sequence).substr(peptide->pps_start, peptide->pps_length) << endl;
 		}
-		split_tokens.clear();
+		split_peptides.clear();
 		count++;
 	}
 }
 
-int ppsg_add_protein_sequence (pep_graph pg, protein_data protein)
+protein_pep_sequence_graph* ppsg_create_new_node()
 {
-}
-
-pep_graph* ppsg_create_new_node()
-{
-	pep_graph *node = new pep_graph;
+	protein_pep_sequence_graph *node = new protein_pep_sequence_graph;
 
 	for (int i = 0; i < MAX_EDGES; i++)
 		node->pg_edge_neighbor[i] = NULL;
@@ -173,7 +213,7 @@ pep_graph* ppsg_create_new_node()
 	return node;
 }
 
-int ppsg_add_peptide_sequence (pep_graph *pg, protein_data *protein, std::string &peptide_seq, int pos)
+int ppsg_add_peptide_sequence (protein_pep_sequence_graph *pg, protein_pep_sequence *peptide_seq, int pos)
 {
 	if (pg == NULL) {
 		// This should not happen as 
@@ -182,42 +222,48 @@ int ppsg_add_peptide_sequence (pep_graph *pg, protein_data *protein, std::string
 	}
 
 	// get the edge with the mass or amino acid present at pos
-	int index = peptide_seq.at(pos) - 'A';
+	int index = (peptide_seq->pps_protein->prd_pep_sequence).at(peptide_seq->pps_start + pos) - 'A';
 
 	// cout << "Index is " << index << endl;
-	pep_graph *node = pg->pg_edge_neighbor[index];
+	protein_pep_sequence_graph *node = pg->pg_edge_neighbor[index];
 	if (node == NULL) {
 		// if there is none, allocate a node and insert
-		pep_graph *new_node = ppsg_create_new_node();
+		protein_pep_sequence_graph *new_node = ppsg_create_new_node();
 		node = pg->pg_edge_neighbor[index] = new_node;
 	}
 
-	if (pos == peptide_seq.length() - 1) {
-		// If this is the last one in the sequence, 
-		// mark and insert protein into the terminal list
-		// SET_PEPG_NODE_TERMINAL(node);
-		(node->pg_protein_list).insert(protein);
+	if (pos == peptide_seq->pps_length - 1) {
+		// If this is the last one in the sequence, insert protein into the terminal list
+		(node->pg_pps_list).insert(peptide_seq);
 	} else {
 		// recurse
-		ppsg_add_peptide_sequence(node, protein, peptide_seq, pos + 1);
+		ppsg_add_peptide_sequence(node, peptide_seq, pos + 1);
 	}
 }
 
-void ppsg_find_proteins_precursor_mass (pep_graph *pg, int pmass, int cmass, string pep_seq)
+void ppsg_find_proteins_precursor_mass (protein_pep_sequence_graph *pg, int pmass, int cmass, string pep_seq)
 {
 	for (int i = 0; i < MAX_EDGES; i++) {
+		protein_pep_sequence_graph* pg_tobe = pg->pg_edge_neighbor[i];
 		// For all edges, if there is a valid edge
-		if ((pg->pg_edge_neighbor)[i] != NULL) {
+		if (pg_tobe != NULL) {
 			// If the mass with that amino acid is less than or equal to, recurse and check terminal
 			if ((cmass + pp_amino_acid_mass[i]) < pmass) {
-				char end_char = 'A' + pp_amino_acid_mass[i];
-				ppsg_find_proteins_precursor_mass((pg->pg_edge_neighbor)[i], pmass, cmass + pp_amino_acid_mass[i], pep_seq + end_char);
 
-				if ((pg->pg_protein_list).size() > 0) {
-					for (protein_data *protein : pg->pg_protein_list) {
-						cout << protein->pr_id << endl;
+				if ((pg_tobe->pg_pps_list).size() > 0) {
+					cout << "The size of the number of peptide sequences in this terminal node are " << (pg_tobe->pg_pps_list).size() << endl;
+					set<protein_pep_sequence*>::iterator it;
+
+					char end_char = 'A' + i;
+					for (it = (pg_tobe->pg_pps_list).begin(); it != (pg_tobe->pg_pps_list).end(); it++) {
+						cout << (*it)->pps_protein->prd_id<< " and the sequence is " << pep_seq + end_char << 
+							 " starting from " << (*it)->pps_start << endl;
 					}
 				}
+
+				char end_char = 'A' + i;
+				ppsg_find_proteins_precursor_mass(pg_tobe, pmass, cmass + pp_amino_acid_mass[i], pep_seq + end_char);
+
 			}
 		}
 	}
@@ -225,7 +271,8 @@ void ppsg_find_proteins_precursor_mass (pep_graph *pg, int pmass, int cmass, str
 
 int main() 
 {
-	cout << "Size of the node PepGraph is " << sizeof(pep_graph) << endl;
+	cout << "Size of the node in PepGraph is " << sizeof(protein_pep_sequence_graph) << endl;
+	cout << "Size of a peptide sequence is " << sizeof(protein_pep_sequence) << endl;
 	// Read file
 
 	// Here is the data we want.
@@ -239,17 +286,19 @@ int main()
 
 	/*
 	for (protein_data *protein : data) {
-		cout << "Protein is " << protein->pr_id << endl;
-		cout << "Its amino acid sequence is " << protein->pr_pep_sequence << endl;
+		cout << "Protein is " << protein->prd_id << endl;
+		cout << "Its amino acid sequence is " << protein->prd_pep_sequence << endl;
 	}
 	*/
 
 	// For each protein, split the peptide sequence based on the cut amino acid
 	// For each cut add to the graph 
-	pep_graph *pg = ppsg_create_new_node();
+	protein_pep_sequence_graph *pg = ppsg_create_new_node();
 	ppsg_add_protein_database_graph(pg, data);
 
 	cout << "Number of graph nodes " << ppsg_num_graph_nodes << endl;
+
+	cout << "Number of peptide sequences " << ppsg_num_peptides << endl;
 
 	int precursor_mass;
 
