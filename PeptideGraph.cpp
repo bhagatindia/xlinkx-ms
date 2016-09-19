@@ -4,6 +4,7 @@
 #include <vector>
 #include <sstream>
 #include <fstream>
+#include <set>
 
 #define MAX_EDGES 26
 
@@ -31,7 +32,7 @@ typedef vector<protein_data *> data_t;
  */
 struct pep_graph {
 	pep_graph 		*pg_edge_neighbor[MAX_EDGES];
-	vector<protein_data*>	pg_protein_list;
+	set<protein_data*>	pg_protein_list;
 };
 
 int ppsg_add_peptide_sequence (pep_graph *pg, protein_data *protein, std::string &peptide_seq, int pos);
@@ -74,8 +75,8 @@ void ppsg_split(std::string str, std::string splitBy, std::vector<std::string>& 
 
 	// Store the split index in a 'size_t' (unsigned integer) type.
 	size_t splitAt;
-	// Store the size of what we're splicing out.
-	size_t splitLen = splitBy.size();
+	// Store the size of what we're splicing out. One character is good enough.
+	size_t splitLen = 1;
 	// Create a string for temporarily storing the fragment we're processing.
 	std::string frag;
 	// Loop infinitely - break is internal.
@@ -85,7 +86,7 @@ void ppsg_split(std::string str, std::string splitBy, std::vector<std::string>& 
 		 * candidate for processing. */
 		frag = tokens.back();
 		/* The index where the split is. */
-		splitAt = frag.find(splitBy);
+		splitAt = frag.find_first_of(splitBy);
 		// If we didn't find a new split point...
 		if(splitAt == string::npos)
 		{
@@ -94,7 +95,7 @@ void ppsg_split(std::string str, std::string splitBy, std::vector<std::string>& 
 		}
 		/* Put everything from the left side of the split where the string
 		 * being processed used to be. */
-		tokens.back() = frag.substr(0, splitAt);
+		tokens.back() = frag.substr(0, splitAt + 1);
 		/* Push everything from the right side of the split to the next empty
 		 * index in the vector. */
 		tokens.push_back(frag.substr(splitAt+splitLen, frag.size()-(splitAt+splitLen)));
@@ -128,21 +129,31 @@ void ppsg_read_protein_database(string file, data_t& data)
 	return;
 }
 
+#define PRINT_PROTEIN_STATUS 10000
+
 void ppsg_add_protein_database_graph (pep_graph *pg, data_t data)
 {
-	string split_char = "K";
+	string split_char = "KR";
 	vector<string> split_tokens;
+
+	std::ofstream ofs;
+	ofs.open("peptide_sequence_dump.txt", std::ofstream::out | std::ofstream::app);
 
 	int count = 0;
 	for (protein_data *protein : data) {
-		cout << "Protein number is " << count++ << " and it is " << protein->pr_pep_sequence << endl;
+		// cout << "Protein number is " << count << " and it is " << protein->pr_pep_sequence << endl;
+		if (count % PRINT_PROTEIN_STATUS == 0)
+			cout << "Reading protein " << count << endl;
+
 		ppsg_split(protein->pr_pep_sequence, split_char, split_tokens);
 		for (string token : split_tokens) {
 			// cout << "Token is " << token << endl;
 			if (token.length() == 0) continue;
 			ppsg_add_peptide_sequence(pg, protein, token, 0);
+			ofs << token << endl;
 		}
 		split_tokens.clear();
+		count++;
 	}
 }
 
@@ -185,7 +196,7 @@ int ppsg_add_peptide_sequence (pep_graph *pg, protein_data *protein, std::string
 		// If this is the last one in the sequence, 
 		// mark and insert protein into the terminal list
 		// SET_PEPG_NODE_TERMINAL(node);
-		(node->pg_protein_list).push_back(protein);
+		(node->pg_protein_list).insert(protein);
 	} else {
 		// recurse
 		ppsg_add_peptide_sequence(node, protein, peptide_seq, pos + 1);
@@ -243,6 +254,7 @@ int main()
 	int precursor_mass;
 
 	while (1) {
+		cout << "Enter precursor mass to search: ";
 		cin >> precursor_mass;
 
 		ppsg_find_proteins_precursor_mass(pg, precursor_mass, 0, "");
