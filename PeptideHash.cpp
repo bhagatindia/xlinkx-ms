@@ -28,13 +28,14 @@ struct protein_pep_sequence {
 };
 
 #define MIN_FRAGMENT_MASS 600
-#define MAX_FRAGMENT_MASS 6000
-vector<protein_pep_sequence*> fragment_mass[MAX_FRAGMENT_MASS];
+#define MAX_FRAGMENT_MASS 6000000
+//vector<protein_pep_sequence*> fragment_mass[MAX_FRAGMENT_MASS];
+int fragment_mass[MAX_FRAGMENT_MASS];
 
 static int ppsg_num_peptides = 0;
 
 int pp_amino_acid_mass[MAX_EDGES] = { 	71, //A 
-					99999, //B not there
+					99, //B not there
 					103, //C
 					115, //D
 					129, //E
@@ -42,7 +43,7 @@ int pp_amino_acid_mass[MAX_EDGES] = { 	71, //A
 					57, //G
 					137, //H
 					113, //I
-					99999, //J
+					99, //J
 					128, //K
 					113, //L
 					131, //M
@@ -53,12 +54,12 @@ int pp_amino_acid_mass[MAX_EDGES] = { 	71, //A
 					156, //R
 					87, //S
 					101, //T
-					99999, //U
+					99, //U
 					99, //V
 					186, //W
-					99999, //X
+					99, //X
 					163, //Y
-					99999 //Z 
+					99 //Z 
 				};
 
 void ppsg_split_string(std::string str, std::string splitBy, std::vector<std::string>& tokens)
@@ -128,7 +129,8 @@ void ppsg_split_peptides(protein_data* protein, std::string splitBy, std::vector
 		pps->pps_length = splitAt+splitLen;
 		/* Push everything from the right side of the split to the next empty
 		 * index in the vector. */
-		frag = frag.substr(splitAt+splitLen, frag.size()-(splitAt+splitLen));
+		int length = frag.length()-(splitAt+splitLen);
+		frag = frag.substr(splitAt+splitLen, length);
 		cur_start += pps->pps_length;
 	}
 }
@@ -170,7 +172,7 @@ void ppsg_add_peptide_sequence_hash (protein_pep_sequence *peptide)
 	for (; pos < (peptide->pps_length + peptide->pps_start); pos++) {
 		char amino_acid = ((peptide->pps_protein)->prd_pep_sequence).at(pos);
 		mass += pp_amino_acid_mass[amino_acid - 'A'];
-		fragment_mass[mass].push_back(peptide);
+		fragment_mass[mass]++;
 	}
 }
 
@@ -190,7 +192,7 @@ void ppsg_add_protein_database_hash (data_t data)
 
 		ppsg_split_peptides(protein, split_char, split_peptides);
 		for (protein_pep_sequence* peptide : split_peptides) {
-			// cout << "Token is " << token << endl;
+//			cout << "Peptide is " << peptide->pps_start << endl;
 			ppsg_add_peptide_sequence_hash(peptide);
 			ofs << "Protein ID: " << peptide->pps_protein->prd_id << " Start = " << 
 				peptide->pps_start << " End = " << peptide->pps_start + peptide->pps_length - 1 << " " <<  
@@ -227,6 +229,6 @@ int main()
 	ppsg_add_protein_database_hash(data);
 
 	for (int i = MIN_FRAGMENT_MASS; i < MAX_FRAGMENT_MASS; i++) {
-		cout << "Number of peptide sequences at this mass are " << i << " " << fragment_mass[i].size() << endl;
+		cout << "Number of peptide sequences at this mass are " << i << " " << fragment_mass[i] << endl;
 	}
 }
