@@ -43,15 +43,16 @@ struct ScanDataStruct
    double dPrecursorMH;       // intact precursor mh+
    double dHardklorPrecursorNeutralMass;  // precursor m/z found from Hardklor
 
-   vector<PrecursorsStruct> pvPrecursors;
+   vector<PrecursorsStruct> pvdPrecursors;
 };
 
-vector<ScanDataStruct> pvSpectrumList;
+extern vector<ScanDataStruct> pvSpectrumList;
 
 
-void READ_MZXML(char *szMZXML);
+void READ_MZXMLSCANS(char *szMZXML);
 void READ_HK1(char *szHK);
 void READ_HK2(char *szHK);
+void LOAD_SPECTRA(char *szMZXML);
 int WITHIN_TOLERANCE(double dMass1, double dMass2);
 
 

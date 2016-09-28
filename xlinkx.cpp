@@ -1,13 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "Common.h"
 #include "xlinkx.h"
+#include "xlinkx_DataInternal.h"
+#include "xlinkx_Preprocess.h"
+#include "xlinkx_Search.h"
+#include "xlinkx_MassSpecUtils.h"
 
 
 // This program takes in an mzXML as input.
 // If corresponding .hk file does not exist, it runs Hardklor to create it.
 // Then reading each MS/MS scan in mzXML, find 2 peaks in .hk file
 // that add up to ReACT relationship; need mzXML for precursor mass.
+
+vector<ScanDataStruct> pvSpectrumList;
 
 int main(int argc, char **argv)
 {
@@ -17,7 +24,8 @@ int main(int argc, char **argv)
 
    if (argc<2)
    {
-      printf(" xlinkx.  Need to enter mzXML file on command line.\n");
+      printf("  USAGE:  xlinkx input.mzXML.\n\n");
+      printf("  Need to enter mzXML file on command line.\n\n");
       exit(1);
    }
 
@@ -34,34 +42,69 @@ int main(int argc, char **argv)
 
 
    // This first pass read simply gets all ms/ms scans and their measured precursor m/z
-   READ_MZXML(szMZXML);
+   READ_MZXMLSCANS(szMZXML);
 
    // Next, go to Hardklor .hk1 file to get accurate precursor m/z
    READ_HK1(szHK1);
 
-   // Now, read through .hk2 file to find accurate peptide masses that add up to precursor m/z
+   // Now, read through .hk2 file to find accurate peptide masses that add up to precursor
    READ_HK2(szHK2);
 
-   // Now that we have one or more peptide pairs (masses) for most MS/MS scans, need to
-   // parse sequence database and grab all peptides that match these masses.  Let's get
-   // a list of peptide masses first.
-   vector<double> pvPrecursorMasses;
-   for (int i; i<(int)pvSpectrumList.size(); i++)
+   // Load and preprocess all MS/MS scans that have a pair of peptide masses that add up to precursor
+   g_staticParams.tolerances.dFragmentBinSize = 1.0005;
+   g_staticParams.dInverseBinWidth = 1.0 /g_staticParams.tolerances.dFragmentBinSize;
+   LOAD_SPECTRA(szMZXML);
+
+   int iCount=0;
+   for (int ii=0; ii<(int)pvSpectrumList.size(); ii++)
    {
-      for (int ii=0; ii<(int)pvSpectrumList.at(i).pvPrecursors.size(); ii++)
-      {
-         printf("scan %d, precursor %f\t%f %f\n", pvSpectrumList.at(i).iScanNumber,
-               pvSpectrumList.at(i).dHardklorPrecursorNeutralMass,
-               pvSpectrumList.at(i).pvPrecursors.at(ii).dNeutralMass1,
-               pvSpectrumList.at(i).pvPrecursors.at(ii).dNeutralMass2);
-      }
+      if (pvSpectrumList.at(ii).pvdPrecursors.size() > 0)
+         iCount++;
    }
-
-   exit(0);
-}
+   printf(" #spectra with relationship: %d    #total spectra:  %d\n", iCount, (int)pvSpectrumList.size());
 
 
-void READ_MZXML(char *szMZXML)
+   // Apply some settings that might be better applied somewhere else
+   xlinkx_MassSpecUtils::AssignMass(g_staticParams.massUtility.pdAAMassParent,
+                                    g_staticParams.massUtility.bMonoMassesParent,
+                                    &g_staticParams.massUtility.dOH2parent);
+
+   xlinkx_MassSpecUtils::AssignMass(g_staticParams.massUtility.pdAAMassFragment,
+                                    g_staticParams.massUtility.bMonoMassesFragment,
+                                    &g_staticParams.massUtility.dOH2fragment);
+
+   g_staticParams.precalcMasses.iMinus17 = BIN(g_staticParams.massUtility.dH2O);
+   g_staticParams.precalcMasses.iMinus18 = BIN(g_staticParams.massUtility.dNH3);
+
+   g_staticParams.precalcMasses.dNtermProton = g_staticParams.staticModifications.dAddNterminusPeptide
+      + PROTON_MASS;
+
+   g_staticParams.precalcMasses.dCtermOH2Proton = g_staticParams.staticModifications.dAddCterminusPeptide
+      + g_staticParams.massUtility.dOH2fragment
+      + PROTON_MASS;
+
+   g_staticParams.precalcMasses.dOH2ProtonCtermNterm = g_staticParams.massUtility.dOH2parent
+      + PROTON_MASS
+      + g_staticParams.staticModifications.dAddCterminusPeptide
+      + g_staticParams.staticModifications.dAddNterminusPeptide;
+
+   strcpy(g_staticParams.enzymeInformation.szSearchEnzymeName, "trypsin");
+   strcpy(g_staticParams.enzymeInformation.szSearchEnzymeBreakAA, "KR");
+   strcpy(g_staticParams.enzymeInformation.szSearchEnzymeNoBreakAA, "P");
+   g_staticParams.enzymeInformation.iSearchEnzymeOffSet = 1;
+
+   g_staticParams.options.iEnzymeTermini = ENZYME_DOUBLE_TERMINI;
+   g_staticParams.options.bNoEnzymeSelected = false;
+
+   // Now open fasta file and get a list of all peptides with masses close to 
+   xlinkx_Search::SearchForPeptides();
+
+   return 0;
+
+} //main
+
+
+void READ_MZXMLSCANS(char *szMZXML)
 {
    MSReader mstReader;
    Spectrum mstSpectrum;
@@ -69,11 +112,10 @@ void READ_MZXML(char *szMZXML)
    int iScanNumber=1;
    int iMS1ScanNumber=0;
 
-   // We want to read only MS2/MS3 scans.
-   vector<MSSpectrumType> msLevel;
-
    printf(" reading %s ... ", szMZXML); fflush(stdout);
 
+   // We want to read only MS1/MS2 scans.
+   vector<MSSpectrumType> msLevel;
    msLevel.push_back(MS1);
    msLevel.push_back(MS2);
 
@@ -114,7 +156,7 @@ void READ_MZXML(char *szMZXML)
          exit(1);
       }
 
-      if (iScanNumber%200)
+      if (!(iScanNumber%200))
       {
          printf("%3d%%", (int)(100.0*iScanNumber/iFileLastScan));
          fflush(stdout);
@@ -134,7 +176,7 @@ void READ_HK1(char *szHK)
    long lFP = 0;
    long lEndFP;
 
-   printf(" reading %s ...", szHK); fflush(stdout);
+   printf(" reading %s ... ", szHK); fflush(stdout);
 
    if ( (fp=fopen(szHK, "r"))== NULL)
    {
@@ -230,7 +272,7 @@ void READ_HK2(char *szHK)
    long lFP = 0;
    long lEndFP;
 
-   printf(" reading %s ...", szHK); fflush(stdout);
+   printf(" reading %s ... ", szHK); fflush(stdout);
 
    if ( (fp=fopen(szHK, "r"))== NULL)
    {
@@ -322,48 +364,52 @@ void READ_HK2(char *szHK)
             {
                for (ii=i; ii<iNumPeaks; ii++)
                {
-                  double dCombinedMass = pPeaks[i].dNeutralMass + pPeaks[ii].dNeutralMass + dReporter;
-
-                  if (WITHIN_TOLERANCE(dCombinedMass, pvSpectrumList.at(iListCt).dHardklorPrecursorNeutralMass))
+                  // Placing check here that the peptide masses must be greater than some minimum
+                  if (pPeaks[i].dNeutralMass >= 500.0 && pPeaks[ii].dNeutralMass >= 500.0)
                   {
-                     if (pPeaks[i].iCharge + pPeaks[ii].iCharge <= pvSpectrumList.at(iListCt).iPrecursorCharge
-                           && pPeaks[i].iCharge < pvSpectrumList.at(iListCt).iPrecursorCharge
-                           && pPeaks[ii].iCharge < pvSpectrumList.at(iListCt).iPrecursorCharge)
+                     double dCombinedMass = pPeaks[i].dNeutralMass + pPeaks[ii].dNeutralMass + dReporter;
+
+                     if (WITHIN_TOLERANCE(dCombinedMass, pvSpectrumList.at(iListCt).dHardklorPrecursorNeutralMass))
                      {
-                        struct PrecursorsStruct pTmp;
-
-                        if (pPeaks[i].dNeutralMass < pPeaks[ii].dNeutralMass)
+                        if (pPeaks[i].iCharge + pPeaks[ii].iCharge <= pvSpectrumList.at(iListCt).iPrecursorCharge
+                              && pPeaks[i].iCharge < pvSpectrumList.at(iListCt).iPrecursorCharge
+                              && pPeaks[ii].iCharge < pvSpectrumList.at(iListCt).iPrecursorCharge)
                         {
-                           pTmp.dNeutralMass1 = pPeaks[i].dNeutralMass;
-                           pTmp.dNeutralMass2 = pPeaks[ii].dNeutralMass;
-                           pTmp.iCharge1 = pPeaks[i].iCharge;
-                           pTmp.iCharge2 = pPeaks[i].iCharge;
-                        }
-                        else
-                        {
-                           pTmp.dNeutralMass2 = pPeaks[i].dNeutralMass;
-                           pTmp.dNeutralMass1 = pPeaks[ii].dNeutralMass;
-                           pTmp.iCharge2 = pPeaks[i].iCharge;
-                           pTmp.iCharge1 = pPeaks[i].iCharge;
-                        }
+                           struct PrecursorsStruct pTmp;
 
-                        // Do a quick check here and push_back only if the two
-                        // masses are not very similar to existing masses
-                        
-                        bool bMassesAlreadyPresent = false;
-
-                        for (int iii=0; iii<(int)pvSpectrumList.at(iListCt).pvPrecursors.size(); iii++)
-                        {
-                           if (WITHIN_TOLERANCE(pTmp.dNeutralMass1, pvSpectrumList.at(iListCt).pvPrecursors.at(iii).dNeutralMass1)
-                                 && WITHIN_TOLERANCE(pTmp.dNeutralMass1, pvSpectrumList.at(iListCt).pvPrecursors.at(iii).dNeutralMass1))
+                           if (pPeaks[i].dNeutralMass < pPeaks[ii].dNeutralMass)
                            {
-                              bMassesAlreadyPresent = true;
-                              break;
+                              pTmp.dNeutralMass1 = pPeaks[i].dNeutralMass;
+                              pTmp.dNeutralMass2 = pPeaks[ii].dNeutralMass;
+                              pTmp.iCharge1 = pPeaks[i].iCharge;
+                              pTmp.iCharge2 = pPeaks[i].iCharge;
                            }
-                        }
+                           else
+                           {
+                              pTmp.dNeutralMass2 = pPeaks[i].dNeutralMass;
+                              pTmp.dNeutralMass1 = pPeaks[ii].dNeutralMass;
+                              pTmp.iCharge2 = pPeaks[i].iCharge;
+                              pTmp.iCharge1 = pPeaks[i].iCharge;
+                           }
 
-                        if (!bMassesAlreadyPresent)
-                           pvSpectrumList.at(iListCt).pvPrecursors.push_back(pTmp);
+                           // Do a quick check here and push_back only if the two
+                           // masses are not very similar to existing masses
+                           
+                           bool bMassesAlreadyPresent = false;
+
+                           for (int iii=0; iii<(int)pvSpectrumList.at(iListCt).pvdPrecursors.size(); iii++)
+                           {
+                              if (WITHIN_TOLERANCE(pTmp.dNeutralMass1, pvSpectrumList.at(iListCt).pvdPrecursors.at(iii).dNeutralMass1)
+                                    && WITHIN_TOLERANCE(pTmp.dNeutralMass2, pvSpectrumList.at(iListCt).pvdPrecursors.at(iii).dNeutralMass2))
+                              {
+                                 bMassesAlreadyPresent = true;
+                                 break;
+                              }
+                           }
+
+                           if (!bMassesAlreadyPresent)
+                              pvSpectrumList.at(iListCt).pvdPrecursors.push_back(pTmp);
+                        }
                      }
                   }
                }
@@ -384,10 +430,53 @@ void READ_HK2(char *szHK)
 
 int WITHIN_TOLERANCE(double dMass1, double dMass2)
 {
-   double dPPM = 10.0;
+   double dPPM = 20.0;
 
    if (1E6 * fabs(dMass1 - dMass2)/dMass2 <= dPPM)
       return 1;
    else
       return 0;
+}
+
+
+void LOAD_SPECTRA(char *szMZXML)
+{
+   MSReader mstReader;
+   Spectrum mstSpectrum;
+
+   printf(" reading %s ... ", szMZXML); fflush(stdout);
+
+   // We want to read only MS2 scans.
+   vector<MSSpectrumType> msLevel;
+   msLevel.push_back(MS2);
+
+   mstReader.setFilter(msLevel);
+   mstReader.readFile(szMZXML, mstSpectrum, 1);
+
+   xlinkx_preprocess::AllocateMemory(1);
+
+   int iReadScans = 0;
+   int iSkippedScans = 0;
+   int iLast = (int)pvSpectrumList.size();
+   for (int i=0; i<iLast; i++)
+   {
+      if ((int)pvSpectrumList.at(i).pvdPrecursors.size() > 0) // this means pair of peptide masses found
+      {
+         xlinkx_preprocess::LoadAndPreprocessSpectra(mstReader, pvSpectrumList.at(i).iScanNumber);
+         iReadScans++;
+      }
+      else
+         iSkippedScans++;
+
+      if (i%200)
+      {  
+         printf("%3d%%", (int)(100.0*i/iLast));
+         fflush(stdout);
+         printf("\b\b\b\b");
+      }
+   }
+
+   printf("100%%\n");
+
+   //printf("iRead %d, iSkipped %d\n\n", iReadScans, iSkippedScans);
 }

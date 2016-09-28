@@ -1,0 +1,5 @@
+database = bovine
+crosslink_residue = K
+crosslink_mass = 197.032422
+reporter_mass = 751.406065
+digestion_enzyme = trypsin
