@@ -9,7 +9,8 @@ message phd_protein {
 message phd_peptide {
    required int32             phdpep_protein_id = 1;
    required int32             phdpep_pepstart = 2;
-   required int32             phdpep_pepend = 3;
+   required int32             phdpep_peplen = 3;
+   required int32             phdpep_cleavedpep = 4; // This should be an enum; left, right, semi, full
 }
 
 message phd_parameters {
@@ -17,7 +18,8 @@ message phd_parameters {
    required string            phdparam_postcut_amino = 2;
    required string            phdparam_prenocut_amino = 3;
    required string            phdparam_postnocut_amino = 4;
-   required string            phdparam_missed_k = 5;
+   required int32             phdparam_missed_cleavage = 5;
+   required int32             phdparam_semi_tryptic = 6;
 }
 
 message phd_header {
@@ -36,7 +38,7 @@ message phd_peptide_mass {
 }
 
 message phd_file {
-   required phd_header        phdhdr = 1;
+   optional phd_header        phdhdr = 1;
    repeated phd_protein       phdpro = 2;
    repeated phd_peptide_mass  phdpepm = 3;
 }
