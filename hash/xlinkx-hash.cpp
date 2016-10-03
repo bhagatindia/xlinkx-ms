@@ -30,16 +30,10 @@ struct protein_data {
 
 typedef vector<protein_data *> data_t;
 
-struct protein_pep_sequence {
-   protein_data*  pps_protein;
-   int      pps_protein_id, pps_start, pps_length, pps_cleavage;
-};
-
 #define MAX_EDGES 30
 #define MIN_FRAGMENT_MASS 600
 #define MAX_FRAGMENT_MASS 600000
 
-//vector<protein_pep_sequence*> fragment_mass[MAX_FRAGMENT_MASS];
 int fragment_mass[MAX_FRAGMENT_MASS];
 
 static int ppsg_num_peptides = 0;
@@ -137,29 +131,9 @@ void phd_read_protein_database(string file, peptide_hash_database::phd_file& dat
    return;
 }
 
-void ppsg_add_peptide_sequence_hash (protein_pep_sequence *peptide)
-{
-   int pos = peptide->pps_start, mass = 0;
-   for (; pos < (peptide->pps_length + peptide->pps_start); pos++) {
-      char amino_acid = ((peptide->pps_protein)->prd_pep_sequence).at(pos);
-      mass += pp_amino_acid_mass[amino_acid - 'A'];
-      fragment_mass[mass]++;
-   }
-}
-
-#define PRINT_PROTEIN_STATUS 10000
-
 struct range {
    int start, length, missed, left, right;
 };
-
-inline size_t min_str_position(size_t x, size_t y)
-{
-   if (x == std::string::npos) return y;
-   if (y == std::string::npos) return x;
-   if (x < y) return x; 
-   else return y;
-}
 
 void phd_basic_cut_pre_post(enzyme_cut_params params, const string protein_seq,
                               vector<range *> &splits)
@@ -358,7 +332,6 @@ void phd_handle_semi_tryptic(enzyme_cut_params params, const string protein_seq,
 }
 
 void phd_split_protein_sequence_peptides(enzyme_cut_params params, 
-                                          std::vector<protein_pep_sequence> &pep_seq,
                                           peptide_hash_database::phd_protein pro_seq)
 {
    const string protein_seq = pro_seq.phdpro_pepseq();
@@ -387,7 +360,6 @@ void phd_params_copy_from_header(peptide_hash_database::phd_parameters pparams, 
 
 void phd_add_peptide_hash_database (peptide_hash_database::phd_file &pfile)
 {
-   std::vector<protein_pep_sequence> pep_seq;
    const peptide_hash_database::phd_parameters pparams = pfile.phdhdr().phdhdr_params();
 
    enzyme_cut_params cut_params;
@@ -395,7 +367,7 @@ void phd_add_peptide_hash_database (peptide_hash_database::phd_file &pfile)
 
    for (int i = 0; i < pfile.phdpro_size(); i++) {
       cout << "Splitting peptides for protein id : " << i << endl;
-      phd_split_protein_sequence_peptides(cut_params, pep_seq, pfile.phdpro(i));
+      phd_split_protein_sequence_peptides(cut_params, pfile.phdpro(i));
    }
 
    // If the parameter is semi-tryptic, add all left and right semi-tryptic peptides
@@ -525,6 +497,9 @@ int phd_save_load_hash(char* argv[], peptide_hash_database::phd_file &pfile)
    if (phd_read_hash_file_and_compare(argv[8], pfile)) {
       // Here is the file containing the data. Read it into data.
       phd_read_protein_database(argv[1], pfile);
+
+      for (int i = 0; i < MAX_FRAGMENT_MASS; i++) {
+      }
 
       phd_add_peptide_hash_database(pfile);
 
