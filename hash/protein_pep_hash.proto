@@ -23,12 +23,12 @@ message phd_parameters {
 }
 
 message phd_header {
-   required int32             phdhdr_version = 1;
-   required string            phdhdr_protein_source_filename = 2;
-   required string            phdhdr_protein_source_file_digest = 3;
-   required int32             phdhdr_num_proteins = 4;
-   required string            phdhdr_hash_file_name = 5;
-   required string            phdhdr_hash_file_digest = 6;
+   optional int32             phdhdr_version = 1;
+   optional string            phdhdr_protein_source_filename = 2;
+   optional string            phdhdr_protein_source_file_digest = 3;
+   optional int32             phdhdr_num_proteins = 4;
+   optional string            phdhdr_hash_file_name = 5;
+   optional string            phdhdr_hash_file_digest = 6;
    required phd_parameters    phdhdr_params = 7;
 }
 

@@ -281,6 +281,28 @@ void phd_handle_missed_cleavage(enzyme_cut_params params, const string protein_s
 void phd_add_missed_semi_tryptic(const string protein_seq, range* r,
                                  vector<range *> &nocut_splits)
 {
+   // Left tryptic
+   cout << "Left trypic peptides for missed cleavages " << r->start << " " << r->length << " " << r->missed << endl;
+   for (int pos = r->start + r->missed + 1; pos < (r->start + r->length); pos++) {
+      range *r_new = new range;
+      r_new->start = r->start;
+      r_new->length= pos - r->start;
+      r_new->missed = 1;
+      r_new->right = 0;
+      r_new->left = 1;
+      nocut_splits.push_back(r_new);
+   }
+
+   // Right tryptic
+   for (int start = r->start + 1; start < (r->start + r->missed); start++) {
+      range *r_new = new range;
+      r_new->start = start;
+      r_new->length= r->start + r->length - start;
+      r_new->missed = 1;
+      r_new->right = 1;
+      r_new->left = 0;
+      nocut_splits.push_back(r_new);
+   } 
 }
 
 void phd_add_semi_tryptic(const string protein_seq, range* r,
@@ -331,9 +353,8 @@ void phd_handle_semi_tryptic(enzyme_cut_params params, const string protein_seq,
    for (range *r: nocut_splits) {
       cout << "Range: Start is " << r->start << " and length is " << r->length << 
                " and missed cleavage " << r->missed << " Left is " << r->left << 
-               " Right is " << r->right << endl;
+               " Right is " << r->right << " and the peptide is " << protein_seq.substr(r->start, r->length) << endl;
    }
-
 }
 
 void phd_split_protein_sequence_peptides(enzyme_cut_params params, 
@@ -433,6 +454,7 @@ void phd_read_cmdline(char *argv[],
    string prenocut_amino(argv[5]);
    string postnocut_amino(argv[6]);
    int internal_lysine = atoi(argv[7]);
+   string hash_file(argv[8]);
 
    // Validate the parameters: no intersection of pre and post and break and no-break
 
@@ -445,12 +467,49 @@ void phd_read_cmdline(char *argv[],
          << "Pre no break amino acids: " << prenocut_amino << endl
          << "Post no break amino acids: " << postnocut_amino << endl
          << "Internal lysine (missed cleavage): " << internal_lysine << endl 
+         << "Hash file given is: " << hash_file << endl 
          <<endl;
 
    phd_params_copy_to_header(phdr, prot_file, semi_tryptic,
                               precut_amino, postcut_amino,
                               prenocut_amino, postnocut_amino,
                               internal_lysine);
+}
+
+void phd_print_params(peptide_hash_database::phd_parameters params)
+{
+   cout << endl 
+         << "Parameters of the file: " << endl
+         << "Protein database file name is: " << params.phdparam_precut_amino()<< endl
+         << "Tryptic/Semi-tryptic run: " << params.phdparam_semi_tryptic() << endl
+         << "Pre break amino acids: " << params.phdparam_postcut_amino() << endl
+         << "Post break amino acids: " << params.phdparam_postcut_amino() << endl
+         << "Pre no break amino acids: " << params.phdparam_prenocut_amino() << endl
+         << "Post no break amino acids: " << params.phdparam_postnocut_amino() << endl
+         << "Internal lysine (missed cleavage): " << params.phdparam_missed_cleavage() << endl 
+         <<endl;
+
+}
+
+int phd_read_hash_file_and_compare(char *hash_file, peptide_hash_database::phd_file pfile)
+{
+   fstream input(hash_file, ios::in | ios::binary);
+   if (!input) {
+      cout << hash_file << ": File not found.  Creating a new file." << endl;
+      return 1;
+   }
+
+   if(!pfile.ParseFromIstream(&input)) {
+      cout << "Read the hash file: " << hash_file << endl;
+      peptide_hash_database::phd_header phdr = pfile.phdhdr();
+      peptide_hash_database::phd_parameters params = phdr.phdhdr_params();
+      phd_print_params(params);
+      return 0;
+   } else {
+      cout << "File read has problems" << endl;
+   }
+
+   return 1;
 }
 
 int phd_save_load_hash(char* argv[], peptide_hash_database::phd_file &pfile)
@@ -463,14 +522,17 @@ int phd_save_load_hash(char* argv[], peptide_hash_database::phd_file &pfile)
 
    phd_read_cmdline(argv, pfile.mutable_phdhdr());
 
-   // Here is the file containing the data. Read it into data.
-   phd_read_protein_database(argv[1], pfile);
+   if (phd_read_hash_file_and_compare(argv[8], pfile)) {
+      // Here is the file containing the data. Read it into data.
+      phd_read_protein_database(argv[1], pfile);
 
-   phd_add_peptide_hash_database(pfile);
+      phd_add_peptide_hash_database(pfile);
 
-   cout << "Read this many records: " << pfile.phdpro_size() << endl;
+      cout << "Read this many records: " << pfile.phdpro_size() << endl;
 
-   phd_save_hash(pfile);
+      phd_save_hash(pfile);
+   } 
+
 }
 
 int main(int argc, char *argv[]) 
@@ -483,9 +545,9 @@ int main(int argc, char *argv[])
 
    GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-   if (argc != 8) {
+   if (argc != 9) {
       cout << "./a.out <protein_database> <semi/tryptic> <precut_aa> " 
-            << "<postcut_aa> <prenocut_aa> <postnocut_aa> <internal_lysine>" << endl;
+            << "<postcut_aa> <prenocut_aa> <postnocut_aa> <internal_lysine> <saved_hash_file>" << endl;
       exit(1);
    }
    
