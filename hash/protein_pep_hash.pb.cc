@@ -26,9 +26,7 @@ const ::google::protobuf::internal::GeneratedMessageReflection*
 const ::google::protobuf::Descriptor* phd_peptide_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   phd_peptide_reflection_ = NULL;
-const ::google::protobuf::Descriptor* phd_parameters_descriptor_ = NULL;
-const ::google::protobuf::internal::GeneratedMessageReflection*
-  phd_parameters_reflection_ = NULL;
+const ::google::protobuf::EnumDescriptor* phd_peptide_peptide_type_descriptor_ = NULL;
 const ::google::protobuf::Descriptor* phd_header_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   phd_header_reflection_ = NULL;
@@ -70,7 +68,7 @@ void protobuf_AssignDesc_protein_5fpep_5fhash_2eproto() {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_peptide, phdpep_protein_id_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_peptide, phdpep_pepstart_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_peptide, phdpep_peplen_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_peptide, phdpep_cleavedpep_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_peptide, phdpep_type_),
   };
   phd_peptide_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -83,35 +81,21 @@ void protobuf_AssignDesc_protein_5fpep_5fhash_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(phd_peptide));
-  phd_parameters_descriptor_ = file->message_type(2);
-  static const int phd_parameters_offsets_[6] = {
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_parameters, phdparam_precut_amino_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_parameters, phdparam_postcut_amino_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_parameters, phdparam_prenocut_amino_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_parameters, phdparam_postnocut_amino_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_parameters, phdparam_missed_cleavage_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_parameters, phdparam_semi_tryptic_),
-  };
-  phd_parameters_reflection_ =
-    new ::google::protobuf::internal::GeneratedMessageReflection(
-      phd_parameters_descriptor_,
-      phd_parameters::default_instance_,
-      phd_parameters_offsets_,
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_parameters, _has_bits_[0]),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_parameters, _unknown_fields_),
-      -1,
-      ::google::protobuf::DescriptorPool::generated_pool(),
-      ::google::protobuf::MessageFactory::generated_factory(),
-      sizeof(phd_parameters));
-  phd_header_descriptor_ = file->message_type(3);
-  static const int phd_header_offsets_[7] = {
+  phd_peptide_peptide_type_descriptor_ = phd_peptide_descriptor_->enum_type(0);
+  phd_header_descriptor_ = file->message_type(2);
+  static const int phd_header_offsets_[12] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_header, phdhdr_version_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_header, phdhdr_protein_source_filename_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_header, phdhdr_protein_source_file_digest_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_header, phdhdr_num_proteins_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_header, phdhdr_hash_file_name_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_header, phdhdr_hash_file_digest_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_header, phdhdr_params_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_header, phdhdr_precut_amino_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_header, phdhdr_postcut_amino_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_header, phdhdr_prenocut_amino_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_header, phdhdr_postnocut_amino_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_header, phdhdr_missed_cleavage_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_header, phdhdr_semi_tryptic_),
   };
   phd_header_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -124,7 +108,7 @@ void protobuf_AssignDesc_protein_5fpep_5fhash_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(phd_header));
-  phd_peptide_mass_descriptor_ = file->message_type(4);
+  phd_peptide_mass_descriptor_ = file->message_type(3);
   static const int phd_peptide_mass_offsets_[2] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_peptide_mass, phdpmass_mass_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_peptide_mass, phdpmass_peptide_list_),
@@ -140,11 +124,9 @@ void protobuf_AssignDesc_protein_5fpep_5fhash_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(phd_peptide_mass));
-  phd_file_descriptor_ = file->message_type(5);
-  static const int phd_file_offsets_[3] = {
+  phd_file_descriptor_ = file->message_type(4);
+  static const int phd_file_offsets_[1] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_file, phdhdr_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_file, phdpro_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(phd_file, phdpepm_),
   };
   phd_file_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -174,8 +156,6 @@ void protobuf_RegisterTypes(const ::std::string&) {
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     phd_peptide_descriptor_, &phd_peptide::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-    phd_parameters_descriptor_, &phd_parameters::default_instance());
-  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     phd_header_descriptor_, &phd_header::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     phd_peptide_mass_descriptor_, &phd_peptide_mass::default_instance());
@@ -190,8 +170,6 @@ void protobuf_ShutdownFile_protein_5fpep_5fhash_2eproto() {
   delete phd_protein_reflection_;
   delete phd_peptide::default_instance_;
   delete phd_peptide_reflection_;
-  delete phd_parameters::default_instance_;
-  delete phd_parameters_reflection_;
   delete phd_header::default_instance_;
   delete phd_header_reflection_;
   delete phd_peptide_mass::default_instance_;
@@ -210,40 +188,37 @@ void protobuf_AddDesc_protein_5fpep_5fhash_2eproto() {
     "\n\026protein_pep_hash.proto\022\025peptide_hash_d"
     "atabase\"L\n\013phd_protein\022\023\n\013phdpro_name\030\001 "
     "\002(\t\022\021\n\tphdpro_id\030\002 \002(\005\022\025\n\rphdpro_pepseq\030"
-    "\003 \002(\t\"s\n\013phd_peptide\022\031\n\021phdpep_protein_i"
-    "d\030\001 \002(\005\022\027\n\017phdpep_pepstart\030\002 \002(\005\022\025\n\rphdp"
-    "ep_peplen\030\003 \002(\005\022\031\n\021phdpep_cleavedpep\030\004 \002"
-    "(\005\"\323\001\n\016phd_parameters\022\035\n\025phdparam_precut"
-    "_amino\030\001 \002(\t\022\036\n\026phdparam_postcut_amino\030\002"
-    " \002(\t\022\037\n\027phdparam_prenocut_amino\030\003 \002(\t\022 \n"
-    "\030phdparam_postnocut_amino\030\004 \002(\t\022 \n\030phdpa"
-    "ram_missed_cleavage\030\005 \002(\005\022\035\n\025phdparam_se"
-    "mi_tryptic\030\006 \002(\005\"\222\002\n\nphd_header\022\026\n\016phdhd"
-    "r_version\030\001 \002(\005\022&\n\036phdhdr_protein_source"
-    "_filename\030\002 \002(\t\022)\n!phdhdr_protein_source"
-    "_file_digest\030\003 \002(\t\022\033\n\023phdhdr_num_protein"
-    "s\030\004 \002(\005\022\035\n\025phdhdr_hash_file_name\030\005 \002(\t\022\037"
-    "\n\027phdhdr_hash_file_digest\030\006 \002(\t\022<\n\rphdhd"
-    "r_params\030\007 \002(\0132%.peptide_hash_database.p"
-    "hd_parameters\"l\n\020phd_peptide_mass\022\025\n\rphd"
-    "pmass_mass\030\001 \002(\005\022A\n\025phdpmass_peptide_lis"
-    "t\030\002 \003(\0132\".peptide_hash_database.phd_pept"
-    "ide\"\253\001\n\010phd_file\0221\n\006phdhdr\030\001 \001(\0132!.pepti"
-    "de_hash_database.phd_header\0222\n\006phdpro\030\002 "
-    "\003(\0132\".peptide_hash_database.phd_protein\022"
-    "8\n\007phdpepm\030\003 \003(\0132\'.peptide_hash_database"
-    ".phd_peptide_mass", 1017);
+    "\003 \002(\t\"\231\002\n\013phd_peptide\022\031\n\021phdpep_protein_"
+    "id\030\001 \002(\005\022\027\n\017phdpep_pepstart\030\002 \002(\005\022\025\n\rphd"
+    "pep_peplen\030\003 \002(\005\022D\n\013phdpep_type\030\004 \002(\0162/."
+    "peptide_hash_database.phd_peptide.peptid"
+    "e_type\"y\n\014peptide_type\022\013\n\007TRYPTIC\020\001\022\020\n\014T"
+    "RYPTIC_MISS\020\002\022\020\n\014TRYPTIC_LEFT\020\003\022\021\n\rTRYPT"
+    "IC_RIGHT\020\004\022\021\n\rTRYPTIC_MLEFT\020\005\022\022\n\016TRYPTIC"
+    "_MRIGHT\020\006\"\213\003\n\nphd_header\022\026\n\016phdhdr_versi"
+    "on\030\001 \002(\005\022&\n\036phdhdr_protein_source_filena"
+    "me\030\002 \002(\t\022)\n!phdhdr_protein_source_file_d"
+    "igest\030\003 \002(\t\022\033\n\023phdhdr_num_proteins\030\004 \002(\005"
+    "\022\035\n\025phdhdr_hash_file_name\030\005 \002(\t\022\037\n\027phdhd"
+    "r_hash_file_digest\030\006 \002(\t\022\033\n\023phdhdr_precu"
+    "t_amino\030\007 \002(\t\022\034\n\024phdhdr_postcut_amino\030\010 "
+    "\002(\t\022\035\n\025phdhdr_prenocut_amino\030\t \002(\t\022\036\n\026ph"
+    "dhdr_postnocut_amino\030\n \002(\t\022\036\n\026phdhdr_mis"
+    "sed_cleavage\030\013 \002(\005\022\033\n\023phdhdr_semi_trypti"
+    "c\030\014 \002(\005\"l\n\020phd_peptide_mass\022\025\n\rphdpmass_"
+    "mass\030\001 \002(\005\022A\n\025phdpmass_peptide_list\030\002 \003("
+    "\0132\".peptide_hash_database.phd_peptide\"=\n"
+    "\010phd_file\0221\n\006phdhdr\030\001 \002(\0132!.peptide_hash"
+    "_database.phd_header", 980);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "protein_pep_hash.proto", &protobuf_RegisterTypes);
   phd_protein::default_instance_ = new phd_protein();
   phd_peptide::default_instance_ = new phd_peptide();
-  phd_parameters::default_instance_ = new phd_parameters();
   phd_header::default_instance_ = new phd_header();
   phd_peptide_mass::default_instance_ = new phd_peptide_mass();
   phd_file::default_instance_ = new phd_file();
   phd_protein::default_instance_->InitAsDefaultInstance();
   phd_peptide::default_instance_->InitAsDefaultInstance();
-  phd_parameters::default_instance_->InitAsDefaultInstance();
   phd_header::default_instance_->InitAsDefaultInstance();
   phd_peptide_mass::default_instance_->InitAsDefaultInstance();
   phd_file::default_instance_->InitAsDefaultInstance();
@@ -582,11 +557,40 @@ void phd_protein::Swap(phd_protein* other) {
 
 // ===================================================================
 
+const ::google::protobuf::EnumDescriptor* phd_peptide_peptide_type_descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return phd_peptide_peptide_type_descriptor_;
+}
+bool phd_peptide_peptide_type_IsValid(int value) {
+  switch(value) {
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+      return true;
+    default:
+      return false;
+  }
+}
+
+#ifndef _MSC_VER
+const phd_peptide_peptide_type phd_peptide::TRYPTIC;
+const phd_peptide_peptide_type phd_peptide::TRYPTIC_MISS;
+const phd_peptide_peptide_type phd_peptide::TRYPTIC_LEFT;
+const phd_peptide_peptide_type phd_peptide::TRYPTIC_RIGHT;
+const phd_peptide_peptide_type phd_peptide::TRYPTIC_MLEFT;
+const phd_peptide_peptide_type phd_peptide::TRYPTIC_MRIGHT;
+const phd_peptide_peptide_type phd_peptide::peptide_type_MIN;
+const phd_peptide_peptide_type phd_peptide::peptide_type_MAX;
+const int phd_peptide::peptide_type_ARRAYSIZE;
+#endif  // _MSC_VER
 #ifndef _MSC_VER
 const int phd_peptide::kPhdpepProteinIdFieldNumber;
 const int phd_peptide::kPhdpepPepstartFieldNumber;
 const int phd_peptide::kPhdpepPeplenFieldNumber;
-const int phd_peptide::kPhdpepCleavedpepFieldNumber;
+const int phd_peptide::kPhdpepTypeFieldNumber;
 #endif  // !_MSC_VER
 
 phd_peptide::phd_peptide()
@@ -608,7 +612,7 @@ void phd_peptide::SharedCtor() {
   phdpep_protein_id_ = 0;
   phdpep_pepstart_ = 0;
   phdpep_peplen_ = 0;
-  phdpep_cleavedpep_ = 0;
+  phdpep_type_ = 1;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -647,7 +651,7 @@ void phd_peptide::Clear() {
     phdpep_protein_id_ = 0;
     phdpep_pepstart_ = 0;
     phdpep_peplen_ = 0;
-    phdpep_cleavedpep_ = 0;
+    phdpep_type_ = 1;
   }
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
@@ -702,19 +706,24 @@ bool phd_peptide::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(32)) goto parse_phdpep_cleavedpep;
+        if (input->ExpectTag(32)) goto parse_phdpep_type;
         break;
       }
 
-      // required int32 phdpep_cleavedpep = 4;
+      // required .peptide_hash_database.phd_peptide.peptide_type phdpep_type = 4;
       case 4: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
-         parse_phdpep_cleavedpep:
+         parse_phdpep_type:
+          int value;
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
-                 input, &phdpep_cleavedpep_)));
-          set_has_phdpep_cleavedpep();
+                   int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
+                 input, &value)));
+          if (::peptide_hash_database::phd_peptide_peptide_type_IsValid(value)) {
+            set_phdpep_type(static_cast< ::peptide_hash_database::phd_peptide_peptide_type >(value));
+          } else {
+            mutable_unknown_fields()->AddVarint(4, value);
+          }
         } else {
           goto handle_uninterpreted;
         }
@@ -755,9 +764,10 @@ void phd_peptide::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteInt32(3, this->phdpep_peplen(), output);
   }
 
-  // required int32 phdpep_cleavedpep = 4;
-  if (has_phdpep_cleavedpep()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(4, this->phdpep_cleavedpep(), output);
+  // required .peptide_hash_database.phd_peptide.peptide_type phdpep_type = 4;
+  if (has_phdpep_type()) {
+    ::google::protobuf::internal::WireFormatLite::WriteEnum(
+      4, this->phdpep_type(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -783,9 +793,10 @@ void phd_peptide::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(3, this->phdpep_peplen(), target);
   }
 
-  // required int32 phdpep_cleavedpep = 4;
-  if (has_phdpep_cleavedpep()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(4, this->phdpep_cleavedpep(), target);
+  // required .peptide_hash_database.phd_peptide.peptide_type phdpep_type = 4;
+  if (has_phdpep_type()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
+      4, this->phdpep_type(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -820,11 +831,10 @@ int phd_peptide::ByteSize() const {
           this->phdpep_peplen());
     }
 
-    // required int32 phdpep_cleavedpep = 4;
-    if (has_phdpep_cleavedpep()) {
+    // required .peptide_hash_database.phd_peptide.peptide_type phdpep_type = 4;
+    if (has_phdpep_type()) {
       total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::Int32Size(
-          this->phdpep_cleavedpep());
+        ::google::protobuf::internal::WireFormatLite::EnumSize(this->phdpep_type());
     }
 
   }
@@ -863,8 +873,8 @@ void phd_peptide::MergeFrom(const phd_peptide& from) {
     if (from.has_phdpep_peplen()) {
       set_phdpep_peplen(from.phdpep_peplen());
     }
-    if (from.has_phdpep_cleavedpep()) {
-      set_phdpep_cleavedpep(from.phdpep_cleavedpep());
+    if (from.has_phdpep_type()) {
+      set_phdpep_type(from.phdpep_type());
     }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
@@ -893,7 +903,7 @@ void phd_peptide::Swap(phd_peptide* other) {
     std::swap(phdpep_protein_id_, other->phdpep_protein_id_);
     std::swap(phdpep_pepstart_, other->phdpep_pepstart_);
     std::swap(phdpep_peplen_, other->phdpep_peplen_);
-    std::swap(phdpep_cleavedpep_, other->phdpep_cleavedpep_);
+    std::swap(phdpep_type_, other->phdpep_type_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
@@ -912,490 +922,18 @@ void phd_peptide::Swap(phd_peptide* other) {
 // ===================================================================
 
 #ifndef _MSC_VER
-const int phd_parameters::kPhdparamPrecutAminoFieldNumber;
-const int phd_parameters::kPhdparamPostcutAminoFieldNumber;
-const int phd_parameters::kPhdparamPrenocutAminoFieldNumber;
-const int phd_parameters::kPhdparamPostnocutAminoFieldNumber;
-const int phd_parameters::kPhdparamMissedCleavageFieldNumber;
-const int phd_parameters::kPhdparamSemiTrypticFieldNumber;
-#endif  // !_MSC_VER
-
-phd_parameters::phd_parameters()
-  : ::google::protobuf::Message() {
-  SharedCtor();
-}
-
-void phd_parameters::InitAsDefaultInstance() {
-}
-
-phd_parameters::phd_parameters(const phd_parameters& from)
-  : ::google::protobuf::Message() {
-  SharedCtor();
-  MergeFrom(from);
-}
-
-void phd_parameters::SharedCtor() {
-  _cached_size_ = 0;
-  phdparam_precut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-  phdparam_postcut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-  phdparam_prenocut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-  phdparam_postnocut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-  phdparam_missed_cleavage_ = 0;
-  phdparam_semi_tryptic_ = 0;
-  ::memset(_has_bits_, 0, sizeof(_has_bits_));
-}
-
-phd_parameters::~phd_parameters() {
-  SharedDtor();
-}
-
-void phd_parameters::SharedDtor() {
-  if (phdparam_precut_amino_ != &::google::protobuf::internal::kEmptyString) {
-    delete phdparam_precut_amino_;
-  }
-  if (phdparam_postcut_amino_ != &::google::protobuf::internal::kEmptyString) {
-    delete phdparam_postcut_amino_;
-  }
-  if (phdparam_prenocut_amino_ != &::google::protobuf::internal::kEmptyString) {
-    delete phdparam_prenocut_amino_;
-  }
-  if (phdparam_postnocut_amino_ != &::google::protobuf::internal::kEmptyString) {
-    delete phdparam_postnocut_amino_;
-  }
-  if (this != default_instance_) {
-  }
-}
-
-void phd_parameters::SetCachedSize(int size) const {
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
-}
-const ::google::protobuf::Descriptor* phd_parameters::descriptor() {
-  protobuf_AssignDescriptorsOnce();
-  return phd_parameters_descriptor_;
-}
-
-const phd_parameters& phd_parameters::default_instance() {
-  if (default_instance_ == NULL) protobuf_AddDesc_protein_5fpep_5fhash_2eproto();
-  return *default_instance_;
-}
-
-phd_parameters* phd_parameters::default_instance_ = NULL;
-
-phd_parameters* phd_parameters::New() const {
-  return new phd_parameters;
-}
-
-void phd_parameters::Clear() {
-  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    if (has_phdparam_precut_amino()) {
-      if (phdparam_precut_amino_ != &::google::protobuf::internal::kEmptyString) {
-        phdparam_precut_amino_->clear();
-      }
-    }
-    if (has_phdparam_postcut_amino()) {
-      if (phdparam_postcut_amino_ != &::google::protobuf::internal::kEmptyString) {
-        phdparam_postcut_amino_->clear();
-      }
-    }
-    if (has_phdparam_prenocut_amino()) {
-      if (phdparam_prenocut_amino_ != &::google::protobuf::internal::kEmptyString) {
-        phdparam_prenocut_amino_->clear();
-      }
-    }
-    if (has_phdparam_postnocut_amino()) {
-      if (phdparam_postnocut_amino_ != &::google::protobuf::internal::kEmptyString) {
-        phdparam_postnocut_amino_->clear();
-      }
-    }
-    phdparam_missed_cleavage_ = 0;
-    phdparam_semi_tryptic_ = 0;
-  }
-  ::memset(_has_bits_, 0, sizeof(_has_bits_));
-  mutable_unknown_fields()->Clear();
-}
-
-bool phd_parameters::MergePartialFromCodedStream(
-    ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
-  ::google::protobuf::uint32 tag;
-  while ((tag = input->ReadTag()) != 0) {
-    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // required string phdparam_precut_amino = 1;
-      case 1: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
-                input, this->mutable_phdparam_precut_amino()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-            this->phdparam_precut_amino().data(), this->phdparam_precut_amino().length(),
-            ::google::protobuf::internal::WireFormat::PARSE);
-        } else {
-          goto handle_uninterpreted;
-        }
-        if (input->ExpectTag(18)) goto parse_phdparam_postcut_amino;
-        break;
-      }
-
-      // required string phdparam_postcut_amino = 2;
-      case 2: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
-         parse_phdparam_postcut_amino:
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
-                input, this->mutable_phdparam_postcut_amino()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-            this->phdparam_postcut_amino().data(), this->phdparam_postcut_amino().length(),
-            ::google::protobuf::internal::WireFormat::PARSE);
-        } else {
-          goto handle_uninterpreted;
-        }
-        if (input->ExpectTag(26)) goto parse_phdparam_prenocut_amino;
-        break;
-      }
-
-      // required string phdparam_prenocut_amino = 3;
-      case 3: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
-         parse_phdparam_prenocut_amino:
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
-                input, this->mutable_phdparam_prenocut_amino()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-            this->phdparam_prenocut_amino().data(), this->phdparam_prenocut_amino().length(),
-            ::google::protobuf::internal::WireFormat::PARSE);
-        } else {
-          goto handle_uninterpreted;
-        }
-        if (input->ExpectTag(34)) goto parse_phdparam_postnocut_amino;
-        break;
-      }
-
-      // required string phdparam_postnocut_amino = 4;
-      case 4: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
-         parse_phdparam_postnocut_amino:
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
-                input, this->mutable_phdparam_postnocut_amino()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-            this->phdparam_postnocut_amino().data(), this->phdparam_postnocut_amino().length(),
-            ::google::protobuf::internal::WireFormat::PARSE);
-        } else {
-          goto handle_uninterpreted;
-        }
-        if (input->ExpectTag(40)) goto parse_phdparam_missed_cleavage;
-        break;
-      }
-
-      // required int32 phdparam_missed_cleavage = 5;
-      case 5: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
-         parse_phdparam_missed_cleavage:
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
-                 input, &phdparam_missed_cleavage_)));
-          set_has_phdparam_missed_cleavage();
-        } else {
-          goto handle_uninterpreted;
-        }
-        if (input->ExpectTag(48)) goto parse_phdparam_semi_tryptic;
-        break;
-      }
-
-      // required int32 phdparam_semi_tryptic = 6;
-      case 6: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
-         parse_phdparam_semi_tryptic:
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
-                 input, &phdparam_semi_tryptic_)));
-          set_has_phdparam_semi_tryptic();
-        } else {
-          goto handle_uninterpreted;
-        }
-        if (input->ExpectAtEnd()) return true;
-        break;
-      }
-
-      default: {
-      handle_uninterpreted:
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          return true;
-        }
-        DO_(::google::protobuf::internal::WireFormat::SkipField(
-              input, tag, mutable_unknown_fields()));
-        break;
-      }
-    }
-  }
-  return true;
-#undef DO_
-}
-
-void phd_parameters::SerializeWithCachedSizes(
-    ::google::protobuf::io::CodedOutputStream* output) const {
-  // required string phdparam_precut_amino = 1;
-  if (has_phdparam_precut_amino()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-      this->phdparam_precut_amino().data(), this->phdparam_precut_amino().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
-    ::google::protobuf::internal::WireFormatLite::WriteString(
-      1, this->phdparam_precut_amino(), output);
-  }
-
-  // required string phdparam_postcut_amino = 2;
-  if (has_phdparam_postcut_amino()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-      this->phdparam_postcut_amino().data(), this->phdparam_postcut_amino().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
-    ::google::protobuf::internal::WireFormatLite::WriteString(
-      2, this->phdparam_postcut_amino(), output);
-  }
-
-  // required string phdparam_prenocut_amino = 3;
-  if (has_phdparam_prenocut_amino()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-      this->phdparam_prenocut_amino().data(), this->phdparam_prenocut_amino().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
-    ::google::protobuf::internal::WireFormatLite::WriteString(
-      3, this->phdparam_prenocut_amino(), output);
-  }
-
-  // required string phdparam_postnocut_amino = 4;
-  if (has_phdparam_postnocut_amino()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-      this->phdparam_postnocut_amino().data(), this->phdparam_postnocut_amino().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
-    ::google::protobuf::internal::WireFormatLite::WriteString(
-      4, this->phdparam_postnocut_amino(), output);
-  }
-
-  // required int32 phdparam_missed_cleavage = 5;
-  if (has_phdparam_missed_cleavage()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(5, this->phdparam_missed_cleavage(), output);
-  }
-
-  // required int32 phdparam_semi_tryptic = 6;
-  if (has_phdparam_semi_tryptic()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(6, this->phdparam_semi_tryptic(), output);
-  }
-
-  if (!unknown_fields().empty()) {
-    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
-        unknown_fields(), output);
-  }
-}
-
-::google::protobuf::uint8* phd_parameters::SerializeWithCachedSizesToArray(
-    ::google::protobuf::uint8* target) const {
-  // required string phdparam_precut_amino = 1;
-  if (has_phdparam_precut_amino()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-      this->phdparam_precut_amino().data(), this->phdparam_precut_amino().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
-    target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        1, this->phdparam_precut_amino(), target);
-  }
-
-  // required string phdparam_postcut_amino = 2;
-  if (has_phdparam_postcut_amino()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-      this->phdparam_postcut_amino().data(), this->phdparam_postcut_amino().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
-    target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        2, this->phdparam_postcut_amino(), target);
-  }
-
-  // required string phdparam_prenocut_amino = 3;
-  if (has_phdparam_prenocut_amino()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-      this->phdparam_prenocut_amino().data(), this->phdparam_prenocut_amino().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
-    target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        3, this->phdparam_prenocut_amino(), target);
-  }
-
-  // required string phdparam_postnocut_amino = 4;
-  if (has_phdparam_postnocut_amino()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-      this->phdparam_postnocut_amino().data(), this->phdparam_postnocut_amino().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
-    target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        4, this->phdparam_postnocut_amino(), target);
-  }
-
-  // required int32 phdparam_missed_cleavage = 5;
-  if (has_phdparam_missed_cleavage()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(5, this->phdparam_missed_cleavage(), target);
-  }
-
-  // required int32 phdparam_semi_tryptic = 6;
-  if (has_phdparam_semi_tryptic()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(6, this->phdparam_semi_tryptic(), target);
-  }
-
-  if (!unknown_fields().empty()) {
-    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
-        unknown_fields(), target);
-  }
-  return target;
-}
-
-int phd_parameters::ByteSize() const {
-  int total_size = 0;
-
-  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // required string phdparam_precut_amino = 1;
-    if (has_phdparam_precut_amino()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::StringSize(
-          this->phdparam_precut_amino());
-    }
-
-    // required string phdparam_postcut_amino = 2;
-    if (has_phdparam_postcut_amino()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::StringSize(
-          this->phdparam_postcut_amino());
-    }
-
-    // required string phdparam_prenocut_amino = 3;
-    if (has_phdparam_prenocut_amino()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::StringSize(
-          this->phdparam_prenocut_amino());
-    }
-
-    // required string phdparam_postnocut_amino = 4;
-    if (has_phdparam_postnocut_amino()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::StringSize(
-          this->phdparam_postnocut_amino());
-    }
-
-    // required int32 phdparam_missed_cleavage = 5;
-    if (has_phdparam_missed_cleavage()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::Int32Size(
-          this->phdparam_missed_cleavage());
-    }
-
-    // required int32 phdparam_semi_tryptic = 6;
-    if (has_phdparam_semi_tryptic()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::Int32Size(
-          this->phdparam_semi_tryptic());
-    }
-
-  }
-  if (!unknown_fields().empty()) {
-    total_size +=
-      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
-        unknown_fields());
-  }
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = total_size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
-  return total_size;
-}
-
-void phd_parameters::MergeFrom(const ::google::protobuf::Message& from) {
-  GOOGLE_CHECK_NE(&from, this);
-  const phd_parameters* source =
-    ::google::protobuf::internal::dynamic_cast_if_available<const phd_parameters*>(
-      &from);
-  if (source == NULL) {
-    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
-  } else {
-    MergeFrom(*source);
-  }
-}
-
-void phd_parameters::MergeFrom(const phd_parameters& from) {
-  GOOGLE_CHECK_NE(&from, this);
-  if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    if (from.has_phdparam_precut_amino()) {
-      set_phdparam_precut_amino(from.phdparam_precut_amino());
-    }
-    if (from.has_phdparam_postcut_amino()) {
-      set_phdparam_postcut_amino(from.phdparam_postcut_amino());
-    }
-    if (from.has_phdparam_prenocut_amino()) {
-      set_phdparam_prenocut_amino(from.phdparam_prenocut_amino());
-    }
-    if (from.has_phdparam_postnocut_amino()) {
-      set_phdparam_postnocut_amino(from.phdparam_postnocut_amino());
-    }
-    if (from.has_phdparam_missed_cleavage()) {
-      set_phdparam_missed_cleavage(from.phdparam_missed_cleavage());
-    }
-    if (from.has_phdparam_semi_tryptic()) {
-      set_phdparam_semi_tryptic(from.phdparam_semi_tryptic());
-    }
-  }
-  mutable_unknown_fields()->MergeFrom(from.unknown_fields());
-}
-
-void phd_parameters::CopyFrom(const ::google::protobuf::Message& from) {
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-void phd_parameters::CopyFrom(const phd_parameters& from) {
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-bool phd_parameters::IsInitialized() const {
-  if ((_has_bits_[0] & 0x0000003f) != 0x0000003f) return false;
-
-  return true;
-}
-
-void phd_parameters::Swap(phd_parameters* other) {
-  if (other != this) {
-    std::swap(phdparam_precut_amino_, other->phdparam_precut_amino_);
-    std::swap(phdparam_postcut_amino_, other->phdparam_postcut_amino_);
-    std::swap(phdparam_prenocut_amino_, other->phdparam_prenocut_amino_);
-    std::swap(phdparam_postnocut_amino_, other->phdparam_postnocut_amino_);
-    std::swap(phdparam_missed_cleavage_, other->phdparam_missed_cleavage_);
-    std::swap(phdparam_semi_tryptic_, other->phdparam_semi_tryptic_);
-    std::swap(_has_bits_[0], other->_has_bits_[0]);
-    _unknown_fields_.Swap(&other->_unknown_fields_);
-    std::swap(_cached_size_, other->_cached_size_);
-  }
-}
-
-::google::protobuf::Metadata phd_parameters::GetMetadata() const {
-  protobuf_AssignDescriptorsOnce();
-  ::google::protobuf::Metadata metadata;
-  metadata.descriptor = phd_parameters_descriptor_;
-  metadata.reflection = phd_parameters_reflection_;
-  return metadata;
-}
-
-
-// ===================================================================
-
-#ifndef _MSC_VER
 const int phd_header::kPhdhdrVersionFieldNumber;
 const int phd_header::kPhdhdrProteinSourceFilenameFieldNumber;
 const int phd_header::kPhdhdrProteinSourceFileDigestFieldNumber;
 const int phd_header::kPhdhdrNumProteinsFieldNumber;
 const int phd_header::kPhdhdrHashFileNameFieldNumber;
 const int phd_header::kPhdhdrHashFileDigestFieldNumber;
-const int phd_header::kPhdhdrParamsFieldNumber;
+const int phd_header::kPhdhdrPrecutAminoFieldNumber;
+const int phd_header::kPhdhdrPostcutAminoFieldNumber;
+const int phd_header::kPhdhdrPrenocutAminoFieldNumber;
+const int phd_header::kPhdhdrPostnocutAminoFieldNumber;
+const int phd_header::kPhdhdrMissedCleavageFieldNumber;
+const int phd_header::kPhdhdrSemiTrypticFieldNumber;
 #endif  // !_MSC_VER
 
 phd_header::phd_header()
@@ -1404,7 +942,6 @@ phd_header::phd_header()
 }
 
 void phd_header::InitAsDefaultInstance() {
-  phdhdr_params_ = const_cast< ::peptide_hash_database::phd_parameters*>(&::peptide_hash_database::phd_parameters::default_instance());
 }
 
 phd_header::phd_header(const phd_header& from)
@@ -1421,7 +958,12 @@ void phd_header::SharedCtor() {
   phdhdr_num_proteins_ = 0;
   phdhdr_hash_file_name_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   phdhdr_hash_file_digest_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-  phdhdr_params_ = NULL;
+  phdhdr_precut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  phdhdr_postcut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  phdhdr_prenocut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  phdhdr_postnocut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  phdhdr_missed_cleavage_ = 0;
+  phdhdr_semi_tryptic_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -1442,8 +984,19 @@ void phd_header::SharedDtor() {
   if (phdhdr_hash_file_digest_ != &::google::protobuf::internal::kEmptyString) {
     delete phdhdr_hash_file_digest_;
   }
+  if (phdhdr_precut_amino_ != &::google::protobuf::internal::kEmptyString) {
+    delete phdhdr_precut_amino_;
+  }
+  if (phdhdr_postcut_amino_ != &::google::protobuf::internal::kEmptyString) {
+    delete phdhdr_postcut_amino_;
+  }
+  if (phdhdr_prenocut_amino_ != &::google::protobuf::internal::kEmptyString) {
+    delete phdhdr_prenocut_amino_;
+  }
+  if (phdhdr_postnocut_amino_ != &::google::protobuf::internal::kEmptyString) {
+    delete phdhdr_postnocut_amino_;
+  }
   if (this != default_instance_) {
-    delete phdhdr_params_;
   }
 }
 
@@ -1492,9 +1045,30 @@ void phd_header::Clear() {
         phdhdr_hash_file_digest_->clear();
       }
     }
-    if (has_phdhdr_params()) {
-      if (phdhdr_params_ != NULL) phdhdr_params_->::peptide_hash_database::phd_parameters::Clear();
+    if (has_phdhdr_precut_amino()) {
+      if (phdhdr_precut_amino_ != &::google::protobuf::internal::kEmptyString) {
+        phdhdr_precut_amino_->clear();
+      }
     }
+    if (has_phdhdr_postcut_amino()) {
+      if (phdhdr_postcut_amino_ != &::google::protobuf::internal::kEmptyString) {
+        phdhdr_postcut_amino_->clear();
+      }
+    }
+  }
+  if (_has_bits_[8 / 32] & (0xffu << (8 % 32))) {
+    if (has_phdhdr_prenocut_amino()) {
+      if (phdhdr_prenocut_amino_ != &::google::protobuf::internal::kEmptyString) {
+        phdhdr_prenocut_amino_->clear();
+      }
+    }
+    if (has_phdhdr_postnocut_amino()) {
+      if (phdhdr_postnocut_amino_ != &::google::protobuf::internal::kEmptyString) {
+        phdhdr_postnocut_amino_->clear();
+      }
+    }
+    phdhdr_missed_cleavage_ = 0;
+    phdhdr_semi_tryptic_ = 0;
   }
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
@@ -1601,17 +1175,103 @@ bool phd_header::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(58)) goto parse_phdhdr_params;
+        if (input->ExpectTag(58)) goto parse_phdhdr_precut_amino;
         break;
       }
 
-      // required .peptide_hash_database.phd_parameters phdhdr_params = 7;
+      // required string phdhdr_precut_amino = 7;
       case 7: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
-         parse_phdhdr_params:
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
-               input, mutable_phdhdr_params()));
+         parse_phdhdr_precut_amino:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_phdhdr_precut_amino()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+            this->phdhdr_precut_amino().data(), this->phdhdr_precut_amino().length(),
+            ::google::protobuf::internal::WireFormat::PARSE);
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(66)) goto parse_phdhdr_postcut_amino;
+        break;
+      }
+
+      // required string phdhdr_postcut_amino = 8;
+      case 8: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+         parse_phdhdr_postcut_amino:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_phdhdr_postcut_amino()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+            this->phdhdr_postcut_amino().data(), this->phdhdr_postcut_amino().length(),
+            ::google::protobuf::internal::WireFormat::PARSE);
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(74)) goto parse_phdhdr_prenocut_amino;
+        break;
+      }
+
+      // required string phdhdr_prenocut_amino = 9;
+      case 9: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+         parse_phdhdr_prenocut_amino:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_phdhdr_prenocut_amino()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+            this->phdhdr_prenocut_amino().data(), this->phdhdr_prenocut_amino().length(),
+            ::google::protobuf::internal::WireFormat::PARSE);
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(82)) goto parse_phdhdr_postnocut_amino;
+        break;
+      }
+
+      // required string phdhdr_postnocut_amino = 10;
+      case 10: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+         parse_phdhdr_postnocut_amino:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_phdhdr_postnocut_amino()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+            this->phdhdr_postnocut_amino().data(), this->phdhdr_postnocut_amino().length(),
+            ::google::protobuf::internal::WireFormat::PARSE);
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(88)) goto parse_phdhdr_missed_cleavage;
+        break;
+      }
+
+      // required int32 phdhdr_missed_cleavage = 11;
+      case 11: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+         parse_phdhdr_missed_cleavage:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &phdhdr_missed_cleavage_)));
+          set_has_phdhdr_missed_cleavage();
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(96)) goto parse_phdhdr_semi_tryptic;
+        break;
+      }
+
+      // required int32 phdhdr_semi_tryptic = 12;
+      case 12: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+         parse_phdhdr_semi_tryptic:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &phdhdr_semi_tryptic_)));
+          set_has_phdhdr_semi_tryptic();
         } else {
           goto handle_uninterpreted;
         }
@@ -1683,10 +1343,50 @@ void phd_header::SerializeWithCachedSizes(
       6, this->phdhdr_hash_file_digest(), output);
   }
 
-  // required .peptide_hash_database.phd_parameters phdhdr_params = 7;
-  if (has_phdhdr_params()) {
-    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      7, this->phdhdr_params(), output);
+  // required string phdhdr_precut_amino = 7;
+  if (has_phdhdr_precut_amino()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->phdhdr_precut_amino().data(), this->phdhdr_precut_amino().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
+      7, this->phdhdr_precut_amino(), output);
+  }
+
+  // required string phdhdr_postcut_amino = 8;
+  if (has_phdhdr_postcut_amino()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->phdhdr_postcut_amino().data(), this->phdhdr_postcut_amino().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
+      8, this->phdhdr_postcut_amino(), output);
+  }
+
+  // required string phdhdr_prenocut_amino = 9;
+  if (has_phdhdr_prenocut_amino()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->phdhdr_prenocut_amino().data(), this->phdhdr_prenocut_amino().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
+      9, this->phdhdr_prenocut_amino(), output);
+  }
+
+  // required string phdhdr_postnocut_amino = 10;
+  if (has_phdhdr_postnocut_amino()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->phdhdr_postnocut_amino().data(), this->phdhdr_postnocut_amino().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
+      10, this->phdhdr_postnocut_amino(), output);
+  }
+
+  // required int32 phdhdr_missed_cleavage = 11;
+  if (has_phdhdr_missed_cleavage()) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(11, this->phdhdr_missed_cleavage(), output);
+  }
+
+  // required int32 phdhdr_semi_tryptic = 12;
+  if (has_phdhdr_semi_tryptic()) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(12, this->phdhdr_semi_tryptic(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -1747,11 +1447,54 @@ void phd_header::SerializeWithCachedSizes(
         6, this->phdhdr_hash_file_digest(), target);
   }
 
-  // required .peptide_hash_database.phd_parameters phdhdr_params = 7;
-  if (has_phdhdr_params()) {
-    target = ::google::protobuf::internal::WireFormatLite::
-      WriteMessageNoVirtualToArray(
-        7, this->phdhdr_params(), target);
+  // required string phdhdr_precut_amino = 7;
+  if (has_phdhdr_precut_amino()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->phdhdr_precut_amino().data(), this->phdhdr_precut_amino().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        7, this->phdhdr_precut_amino(), target);
+  }
+
+  // required string phdhdr_postcut_amino = 8;
+  if (has_phdhdr_postcut_amino()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->phdhdr_postcut_amino().data(), this->phdhdr_postcut_amino().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        8, this->phdhdr_postcut_amino(), target);
+  }
+
+  // required string phdhdr_prenocut_amino = 9;
+  if (has_phdhdr_prenocut_amino()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->phdhdr_prenocut_amino().data(), this->phdhdr_prenocut_amino().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        9, this->phdhdr_prenocut_amino(), target);
+  }
+
+  // required string phdhdr_postnocut_amino = 10;
+  if (has_phdhdr_postnocut_amino()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->phdhdr_postnocut_amino().data(), this->phdhdr_postnocut_amino().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        10, this->phdhdr_postnocut_amino(), target);
+  }
+
+  // required int32 phdhdr_missed_cleavage = 11;
+  if (has_phdhdr_missed_cleavage()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(11, this->phdhdr_missed_cleavage(), target);
+  }
+
+  // required int32 phdhdr_semi_tryptic = 12;
+  if (has_phdhdr_semi_tryptic()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(12, this->phdhdr_semi_tryptic(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -1807,11 +1550,48 @@ int phd_header::ByteSize() const {
           this->phdhdr_hash_file_digest());
     }
 
-    // required .peptide_hash_database.phd_parameters phdhdr_params = 7;
-    if (has_phdhdr_params()) {
+    // required string phdhdr_precut_amino = 7;
+    if (has_phdhdr_precut_amino()) {
       total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
-          this->phdhdr_params());
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->phdhdr_precut_amino());
+    }
+
+    // required string phdhdr_postcut_amino = 8;
+    if (has_phdhdr_postcut_amino()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->phdhdr_postcut_amino());
+    }
+
+  }
+  if (_has_bits_[8 / 32] & (0xffu << (8 % 32))) {
+    // required string phdhdr_prenocut_amino = 9;
+    if (has_phdhdr_prenocut_amino()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->phdhdr_prenocut_amino());
+    }
+
+    // required string phdhdr_postnocut_amino = 10;
+    if (has_phdhdr_postnocut_amino()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->phdhdr_postnocut_amino());
+    }
+
+    // required int32 phdhdr_missed_cleavage = 11;
+    if (has_phdhdr_missed_cleavage()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::Int32Size(
+          this->phdhdr_missed_cleavage());
+    }
+
+    // required int32 phdhdr_semi_tryptic = 12;
+    if (has_phdhdr_semi_tryptic()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::Int32Size(
+          this->phdhdr_semi_tryptic());
     }
 
   }
@@ -1859,8 +1639,25 @@ void phd_header::MergeFrom(const phd_header& from) {
     if (from.has_phdhdr_hash_file_digest()) {
       set_phdhdr_hash_file_digest(from.phdhdr_hash_file_digest());
     }
-    if (from.has_phdhdr_params()) {
-      mutable_phdhdr_params()->::peptide_hash_database::phd_parameters::MergeFrom(from.phdhdr_params());
+    if (from.has_phdhdr_precut_amino()) {
+      set_phdhdr_precut_amino(from.phdhdr_precut_amino());
+    }
+    if (from.has_phdhdr_postcut_amino()) {
+      set_phdhdr_postcut_amino(from.phdhdr_postcut_amino());
+    }
+  }
+  if (from._has_bits_[8 / 32] & (0xffu << (8 % 32))) {
+    if (from.has_phdhdr_prenocut_amino()) {
+      set_phdhdr_prenocut_amino(from.phdhdr_prenocut_amino());
+    }
+    if (from.has_phdhdr_postnocut_amino()) {
+      set_phdhdr_postnocut_amino(from.phdhdr_postnocut_amino());
+    }
+    if (from.has_phdhdr_missed_cleavage()) {
+      set_phdhdr_missed_cleavage(from.phdhdr_missed_cleavage());
+    }
+    if (from.has_phdhdr_semi_tryptic()) {
+      set_phdhdr_semi_tryptic(from.phdhdr_semi_tryptic());
     }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
@@ -1879,11 +1676,8 @@ void phd_header::CopyFrom(const phd_header& from) {
 }
 
 bool phd_header::IsInitialized() const {
-  if ((_has_bits_[0] & 0x0000007f) != 0x0000007f) return false;
+  if ((_has_bits_[0] & 0x00000fff) != 0x00000fff) return false;
 
-  if (has_phdhdr_params()) {
-    if (!this->phdhdr_params().IsInitialized()) return false;
-  }
   return true;
 }
 
@@ -1895,7 +1689,12 @@ void phd_header::Swap(phd_header* other) {
     std::swap(phdhdr_num_proteins_, other->phdhdr_num_proteins_);
     std::swap(phdhdr_hash_file_name_, other->phdhdr_hash_file_name_);
     std::swap(phdhdr_hash_file_digest_, other->phdhdr_hash_file_digest_);
-    std::swap(phdhdr_params_, other->phdhdr_params_);
+    std::swap(phdhdr_precut_amino_, other->phdhdr_precut_amino_);
+    std::swap(phdhdr_postcut_amino_, other->phdhdr_postcut_amino_);
+    std::swap(phdhdr_prenocut_amino_, other->phdhdr_prenocut_amino_);
+    std::swap(phdhdr_postnocut_amino_, other->phdhdr_postnocut_amino_);
+    std::swap(phdhdr_missed_cleavage_, other->phdhdr_missed_cleavage_);
+    std::swap(phdhdr_semi_tryptic_, other->phdhdr_semi_tryptic_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
@@ -2167,8 +1966,6 @@ void phd_peptide_mass::Swap(phd_peptide_mass* other) {
 
 #ifndef _MSC_VER
 const int phd_file::kPhdhdrFieldNumber;
-const int phd_file::kPhdproFieldNumber;
-const int phd_file::kPhdpepmFieldNumber;
 #endif  // !_MSC_VER
 
 phd_file::phd_file()
@@ -2229,8 +2026,6 @@ void phd_file::Clear() {
       if (phdhdr_ != NULL) phdhdr_->::peptide_hash_database::phd_header::Clear();
     }
   }
-  phdpro_.Clear();
-  phdpepm_.Clear();
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
@@ -2241,7 +2036,7 @@ bool phd_file::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional .peptide_hash_database.phd_header phdhdr = 1;
+      // required .peptide_hash_database.phd_header phdhdr = 1;
       case 1: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
@@ -2250,36 +2045,6 @@ bool phd_file::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(18)) goto parse_phdpro;
-        break;
-      }
-
-      // repeated .peptide_hash_database.phd_protein phdpro = 2;
-      case 2: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
-         parse_phdpro:
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
-                input, add_phdpro()));
-        } else {
-          goto handle_uninterpreted;
-        }
-        if (input->ExpectTag(18)) goto parse_phdpro;
-        if (input->ExpectTag(26)) goto parse_phdpepm;
-        break;
-      }
-
-      // repeated .peptide_hash_database.phd_peptide_mass phdpepm = 3;
-      case 3: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
-         parse_phdpepm:
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
-                input, add_phdpepm()));
-        } else {
-          goto handle_uninterpreted;
-        }
-        if (input->ExpectTag(26)) goto parse_phdpepm;
         if (input->ExpectAtEnd()) return true;
         break;
       }
@@ -2302,22 +2067,10 @@ bool phd_file::MergePartialFromCodedStream(
 
 void phd_file::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // optional .peptide_hash_database.phd_header phdhdr = 1;
+  // required .peptide_hash_database.phd_header phdhdr = 1;
   if (has_phdhdr()) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
       1, this->phdhdr(), output);
-  }
-
-  // repeated .peptide_hash_database.phd_protein phdpro = 2;
-  for (int i = 0; i < this->phdpro_size(); i++) {
-    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      2, this->phdpro(i), output);
-  }
-
-  // repeated .peptide_hash_database.phd_peptide_mass phdpepm = 3;
-  for (int i = 0; i < this->phdpepm_size(); i++) {
-    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      3, this->phdpepm(i), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -2328,25 +2081,11 @@ void phd_file::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* phd_file::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // optional .peptide_hash_database.phd_header phdhdr = 1;
+  // required .peptide_hash_database.phd_header phdhdr = 1;
   if (has_phdhdr()) {
     target = ::google::protobuf::internal::WireFormatLite::
       WriteMessageNoVirtualToArray(
         1, this->phdhdr(), target);
-  }
-
-  // repeated .peptide_hash_database.phd_protein phdpro = 2;
-  for (int i = 0; i < this->phdpro_size(); i++) {
-    target = ::google::protobuf::internal::WireFormatLite::
-      WriteMessageNoVirtualToArray(
-        2, this->phdpro(i), target);
-  }
-
-  // repeated .peptide_hash_database.phd_peptide_mass phdpepm = 3;
-  for (int i = 0; i < this->phdpepm_size(); i++) {
-    target = ::google::protobuf::internal::WireFormatLite::
-      WriteMessageNoVirtualToArray(
-        3, this->phdpepm(i), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -2360,7 +2099,7 @@ int phd_file::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // optional .peptide_hash_database.phd_header phdhdr = 1;
+    // required .peptide_hash_database.phd_header phdhdr = 1;
     if (has_phdhdr()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
@@ -2368,22 +2107,6 @@ int phd_file::ByteSize() const {
     }
 
   }
-  // repeated .peptide_hash_database.phd_protein phdpro = 2;
-  total_size += 1 * this->phdpro_size();
-  for (int i = 0; i < this->phdpro_size(); i++) {
-    total_size +=
-      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
-        this->phdpro(i));
-  }
-
-  // repeated .peptide_hash_database.phd_peptide_mass phdpepm = 3;
-  total_size += 1 * this->phdpepm_size();
-  for (int i = 0; i < this->phdpepm_size(); i++) {
-    total_size +=
-      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
-        this->phdpepm(i));
-  }
-
   if (!unknown_fields().empty()) {
     total_size +=
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
@@ -2409,8 +2132,6 @@ void phd_file::MergeFrom(const ::google::protobuf::Message& from) {
 
 void phd_file::MergeFrom(const phd_file& from) {
   GOOGLE_CHECK_NE(&from, this);
-  phdpro_.MergeFrom(from.phdpro_);
-  phdpepm_.MergeFrom(from.phdpepm_);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (from.has_phdhdr()) {
       mutable_phdhdr()->::peptide_hash_database::phd_header::MergeFrom(from.phdhdr());
@@ -2432,15 +2153,10 @@ void phd_file::CopyFrom(const phd_file& from) {
 }
 
 bool phd_file::IsInitialized() const {
+  if ((_has_bits_[0] & 0x00000001) != 0x00000001) return false;
 
   if (has_phdhdr()) {
     if (!this->phdhdr().IsInitialized()) return false;
-  }
-  for (int i = 0; i < phdpro_size(); i++) {
-    if (!this->phdpro(i).IsInitialized()) return false;
-  }
-  for (int i = 0; i < phdpepm_size(); i++) {
-    if (!this->phdpepm(i).IsInitialized()) return false;
   }
   return true;
 }
@@ -2448,8 +2164,6 @@ bool phd_file::IsInitialized() const {
 void phd_file::Swap(phd_file* other) {
   if (other != this) {
     std::swap(phdhdr_, other->phdhdr_);
-    phdpro_.Swap(&other->phdpro_);
-    phdpepm_.Swap(&other->phdpepm_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

@@ -23,6 +23,7 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/extension_set.h>
+#include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
 // @@protoc_insertion_point(includes)
 
@@ -35,11 +36,33 @@ void protobuf_ShutdownFile_protein_5fpep_5fhash_2eproto();
 
 class phd_protein;
 class phd_peptide;
-class phd_parameters;
 class phd_header;
 class phd_peptide_mass;
 class phd_file;
 
+enum phd_peptide_peptide_type {
+  phd_peptide_peptide_type_TRYPTIC = 1,
+  phd_peptide_peptide_type_TRYPTIC_MISS = 2,
+  phd_peptide_peptide_type_TRYPTIC_LEFT = 3,
+  phd_peptide_peptide_type_TRYPTIC_RIGHT = 4,
+  phd_peptide_peptide_type_TRYPTIC_MLEFT = 5,
+  phd_peptide_peptide_type_TRYPTIC_MRIGHT = 6
+};
+bool phd_peptide_peptide_type_IsValid(int value);
+const phd_peptide_peptide_type phd_peptide_peptide_type_peptide_type_MIN = phd_peptide_peptide_type_TRYPTIC;
+const phd_peptide_peptide_type phd_peptide_peptide_type_peptide_type_MAX = phd_peptide_peptide_type_TRYPTIC_MRIGHT;
+const int phd_peptide_peptide_type_peptide_type_ARRAYSIZE = phd_peptide_peptide_type_peptide_type_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* phd_peptide_peptide_type_descriptor();
+inline const ::std::string& phd_peptide_peptide_type_Name(phd_peptide_peptide_type value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    phd_peptide_peptide_type_descriptor(), value);
+}
+inline bool phd_peptide_peptide_type_Parse(
+    const ::std::string& name, phd_peptide_peptide_type* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<phd_peptide_peptide_type>(
+    phd_peptide_peptide_type_descriptor(), name, value);
+}
 // ===================================================================
 
 class phd_protein : public ::google::protobuf::Message {
@@ -206,6 +229,34 @@ class phd_peptide : public ::google::protobuf::Message {
 
   // nested types ----------------------------------------------------
 
+  typedef phd_peptide_peptide_type peptide_type;
+  static const peptide_type TRYPTIC = phd_peptide_peptide_type_TRYPTIC;
+  static const peptide_type TRYPTIC_MISS = phd_peptide_peptide_type_TRYPTIC_MISS;
+  static const peptide_type TRYPTIC_LEFT = phd_peptide_peptide_type_TRYPTIC_LEFT;
+  static const peptide_type TRYPTIC_RIGHT = phd_peptide_peptide_type_TRYPTIC_RIGHT;
+  static const peptide_type TRYPTIC_MLEFT = phd_peptide_peptide_type_TRYPTIC_MLEFT;
+  static const peptide_type TRYPTIC_MRIGHT = phd_peptide_peptide_type_TRYPTIC_MRIGHT;
+  static inline bool peptide_type_IsValid(int value) {
+    return phd_peptide_peptide_type_IsValid(value);
+  }
+  static const peptide_type peptide_type_MIN =
+    phd_peptide_peptide_type_peptide_type_MIN;
+  static const peptide_type peptide_type_MAX =
+    phd_peptide_peptide_type_peptide_type_MAX;
+  static const int peptide_type_ARRAYSIZE =
+    phd_peptide_peptide_type_peptide_type_ARRAYSIZE;
+  static inline const ::google::protobuf::EnumDescriptor*
+  peptide_type_descriptor() {
+    return phd_peptide_peptide_type_descriptor();
+  }
+  static inline const ::std::string& peptide_type_Name(peptide_type value) {
+    return phd_peptide_peptide_type_Name(value);
+  }
+  static inline bool peptide_type_Parse(const ::std::string& name,
+      peptide_type* value) {
+    return phd_peptide_peptide_type_Parse(name, value);
+  }
+
   // accessors -------------------------------------------------------
 
   // required int32 phdpep_protein_id = 1;
@@ -229,12 +280,12 @@ class phd_peptide : public ::google::protobuf::Message {
   inline ::google::protobuf::int32 phdpep_peplen() const;
   inline void set_phdpep_peplen(::google::protobuf::int32 value);
 
-  // required int32 phdpep_cleavedpep = 4;
-  inline bool has_phdpep_cleavedpep() const;
-  inline void clear_phdpep_cleavedpep();
-  static const int kPhdpepCleavedpepFieldNumber = 4;
-  inline ::google::protobuf::int32 phdpep_cleavedpep() const;
-  inline void set_phdpep_cleavedpep(::google::protobuf::int32 value);
+  // required .peptide_hash_database.phd_peptide.peptide_type phdpep_type = 4;
+  inline bool has_phdpep_type() const;
+  inline void clear_phdpep_type();
+  static const int kPhdpepTypeFieldNumber = 4;
+  inline ::peptide_hash_database::phd_peptide_peptide_type phdpep_type() const;
+  inline void set_phdpep_type(::peptide_hash_database::phd_peptide_peptide_type value);
 
   // @@protoc_insertion_point(class_scope:peptide_hash_database.phd_peptide)
  private:
@@ -244,15 +295,15 @@ class phd_peptide : public ::google::protobuf::Message {
   inline void clear_has_phdpep_pepstart();
   inline void set_has_phdpep_peplen();
   inline void clear_has_phdpep_peplen();
-  inline void set_has_phdpep_cleavedpep();
-  inline void clear_has_phdpep_cleavedpep();
+  inline void set_has_phdpep_type();
+  inline void clear_has_phdpep_type();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::google::protobuf::int32 phdpep_protein_id_;
   ::google::protobuf::int32 phdpep_pepstart_;
   ::google::protobuf::int32 phdpep_peplen_;
-  ::google::protobuf::int32 phdpep_cleavedpep_;
+  int phdpep_type_;
 
   mutable int _cached_size_;
   ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
@@ -263,158 +314,6 @@ class phd_peptide : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static phd_peptide* default_instance_;
-};
-// -------------------------------------------------------------------
-
-class phd_parameters : public ::google::protobuf::Message {
- public:
-  phd_parameters();
-  virtual ~phd_parameters();
-
-  phd_parameters(const phd_parameters& from);
-
-  inline phd_parameters& operator=(const phd_parameters& from) {
-    CopyFrom(from);
-    return *this;
-  }
-
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
-
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
-
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const phd_parameters& default_instance();
-
-  void Swap(phd_parameters* other);
-
-  // implements Message ----------------------------------------------
-
-  phd_parameters* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const phd_parameters& from);
-  void MergeFrom(const phd_parameters& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
-
-  ::google::protobuf::Metadata GetMetadata() const;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // required string phdparam_precut_amino = 1;
-  inline bool has_phdparam_precut_amino() const;
-  inline void clear_phdparam_precut_amino();
-  static const int kPhdparamPrecutAminoFieldNumber = 1;
-  inline const ::std::string& phdparam_precut_amino() const;
-  inline void set_phdparam_precut_amino(const ::std::string& value);
-  inline void set_phdparam_precut_amino(const char* value);
-  inline void set_phdparam_precut_amino(const char* value, size_t size);
-  inline ::std::string* mutable_phdparam_precut_amino();
-  inline ::std::string* release_phdparam_precut_amino();
-  inline void set_allocated_phdparam_precut_amino(::std::string* phdparam_precut_amino);
-
-  // required string phdparam_postcut_amino = 2;
-  inline bool has_phdparam_postcut_amino() const;
-  inline void clear_phdparam_postcut_amino();
-  static const int kPhdparamPostcutAminoFieldNumber = 2;
-  inline const ::std::string& phdparam_postcut_amino() const;
-  inline void set_phdparam_postcut_amino(const ::std::string& value);
-  inline void set_phdparam_postcut_amino(const char* value);
-  inline void set_phdparam_postcut_amino(const char* value, size_t size);
-  inline ::std::string* mutable_phdparam_postcut_amino();
-  inline ::std::string* release_phdparam_postcut_amino();
-  inline void set_allocated_phdparam_postcut_amino(::std::string* phdparam_postcut_amino);
-
-  // required string phdparam_prenocut_amino = 3;
-  inline bool has_phdparam_prenocut_amino() const;
-  inline void clear_phdparam_prenocut_amino();
-  static const int kPhdparamPrenocutAminoFieldNumber = 3;
-  inline const ::std::string& phdparam_prenocut_amino() const;
-  inline void set_phdparam_prenocut_amino(const ::std::string& value);
-  inline void set_phdparam_prenocut_amino(const char* value);
-  inline void set_phdparam_prenocut_amino(const char* value, size_t size);
-  inline ::std::string* mutable_phdparam_prenocut_amino();
-  inline ::std::string* release_phdparam_prenocut_amino();
-  inline void set_allocated_phdparam_prenocut_amino(::std::string* phdparam_prenocut_amino);
-
-  // required string phdparam_postnocut_amino = 4;
-  inline bool has_phdparam_postnocut_amino() const;
-  inline void clear_phdparam_postnocut_amino();
-  static const int kPhdparamPostnocutAminoFieldNumber = 4;
-  inline const ::std::string& phdparam_postnocut_amino() const;
-  inline void set_phdparam_postnocut_amino(const ::std::string& value);
-  inline void set_phdparam_postnocut_amino(const char* value);
-  inline void set_phdparam_postnocut_amino(const char* value, size_t size);
-  inline ::std::string* mutable_phdparam_postnocut_amino();
-  inline ::std::string* release_phdparam_postnocut_amino();
-  inline void set_allocated_phdparam_postnocut_amino(::std::string* phdparam_postnocut_amino);
-
-  // required int32 phdparam_missed_cleavage = 5;
-  inline bool has_phdparam_missed_cleavage() const;
-  inline void clear_phdparam_missed_cleavage();
-  static const int kPhdparamMissedCleavageFieldNumber = 5;
-  inline ::google::protobuf::int32 phdparam_missed_cleavage() const;
-  inline void set_phdparam_missed_cleavage(::google::protobuf::int32 value);
-
-  // required int32 phdparam_semi_tryptic = 6;
-  inline bool has_phdparam_semi_tryptic() const;
-  inline void clear_phdparam_semi_tryptic();
-  static const int kPhdparamSemiTrypticFieldNumber = 6;
-  inline ::google::protobuf::int32 phdparam_semi_tryptic() const;
-  inline void set_phdparam_semi_tryptic(::google::protobuf::int32 value);
-
-  // @@protoc_insertion_point(class_scope:peptide_hash_database.phd_parameters)
- private:
-  inline void set_has_phdparam_precut_amino();
-  inline void clear_has_phdparam_precut_amino();
-  inline void set_has_phdparam_postcut_amino();
-  inline void clear_has_phdparam_postcut_amino();
-  inline void set_has_phdparam_prenocut_amino();
-  inline void clear_has_phdparam_prenocut_amino();
-  inline void set_has_phdparam_postnocut_amino();
-  inline void clear_has_phdparam_postnocut_amino();
-  inline void set_has_phdparam_missed_cleavage();
-  inline void clear_has_phdparam_missed_cleavage();
-  inline void set_has_phdparam_semi_tryptic();
-  inline void clear_has_phdparam_semi_tryptic();
-
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
-
-  ::std::string* phdparam_precut_amino_;
-  ::std::string* phdparam_postcut_amino_;
-  ::std::string* phdparam_prenocut_amino_;
-  ::std::string* phdparam_postnocut_amino_;
-  ::google::protobuf::int32 phdparam_missed_cleavage_;
-  ::google::protobuf::int32 phdparam_semi_tryptic_;
-
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(6 + 31) / 32];
-
-  friend void  protobuf_AddDesc_protein_5fpep_5fhash_2eproto();
-  friend void protobuf_AssignDesc_protein_5fpep_5fhash_2eproto();
-  friend void protobuf_ShutdownFile_protein_5fpep_5fhash_2eproto();
-
-  void InitAsDefaultInstance();
-  static phd_parameters* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -534,14 +433,67 @@ class phd_header : public ::google::protobuf::Message {
   inline ::std::string* release_phdhdr_hash_file_digest();
   inline void set_allocated_phdhdr_hash_file_digest(::std::string* phdhdr_hash_file_digest);
 
-  // required .peptide_hash_database.phd_parameters phdhdr_params = 7;
-  inline bool has_phdhdr_params() const;
-  inline void clear_phdhdr_params();
-  static const int kPhdhdrParamsFieldNumber = 7;
-  inline const ::peptide_hash_database::phd_parameters& phdhdr_params() const;
-  inline ::peptide_hash_database::phd_parameters* mutable_phdhdr_params();
-  inline ::peptide_hash_database::phd_parameters* release_phdhdr_params();
-  inline void set_allocated_phdhdr_params(::peptide_hash_database::phd_parameters* phdhdr_params);
+  // required string phdhdr_precut_amino = 7;
+  inline bool has_phdhdr_precut_amino() const;
+  inline void clear_phdhdr_precut_amino();
+  static const int kPhdhdrPrecutAminoFieldNumber = 7;
+  inline const ::std::string& phdhdr_precut_amino() const;
+  inline void set_phdhdr_precut_amino(const ::std::string& value);
+  inline void set_phdhdr_precut_amino(const char* value);
+  inline void set_phdhdr_precut_amino(const char* value, size_t size);
+  inline ::std::string* mutable_phdhdr_precut_amino();
+  inline ::std::string* release_phdhdr_precut_amino();
+  inline void set_allocated_phdhdr_precut_amino(::std::string* phdhdr_precut_amino);
+
+  // required string phdhdr_postcut_amino = 8;
+  inline bool has_phdhdr_postcut_amino() const;
+  inline void clear_phdhdr_postcut_amino();
+  static const int kPhdhdrPostcutAminoFieldNumber = 8;
+  inline const ::std::string& phdhdr_postcut_amino() const;
+  inline void set_phdhdr_postcut_amino(const ::std::string& value);
+  inline void set_phdhdr_postcut_amino(const char* value);
+  inline void set_phdhdr_postcut_amino(const char* value, size_t size);
+  inline ::std::string* mutable_phdhdr_postcut_amino();
+  inline ::std::string* release_phdhdr_postcut_amino();
+  inline void set_allocated_phdhdr_postcut_amino(::std::string* phdhdr_postcut_amino);
+
+  // required string phdhdr_prenocut_amino = 9;
+  inline bool has_phdhdr_prenocut_amino() const;
+  inline void clear_phdhdr_prenocut_amino();
+  static const int kPhdhdrPrenocutAminoFieldNumber = 9;
+  inline const ::std::string& phdhdr_prenocut_amino() const;
+  inline void set_phdhdr_prenocut_amino(const ::std::string& value);
+  inline void set_phdhdr_prenocut_amino(const char* value);
+  inline void set_phdhdr_prenocut_amino(const char* value, size_t size);
+  inline ::std::string* mutable_phdhdr_prenocut_amino();
+  inline ::std::string* release_phdhdr_prenocut_amino();
+  inline void set_allocated_phdhdr_prenocut_amino(::std::string* phdhdr_prenocut_amino);
+
+  // required string phdhdr_postnocut_amino = 10;
+  inline bool has_phdhdr_postnocut_amino() const;
+  inline void clear_phdhdr_postnocut_amino();
+  static const int kPhdhdrPostnocutAminoFieldNumber = 10;
+  inline const ::std::string& phdhdr_postnocut_amino() const;
+  inline void set_phdhdr_postnocut_amino(const ::std::string& value);
+  inline void set_phdhdr_postnocut_amino(const char* value);
+  inline void set_phdhdr_postnocut_amino(const char* value, size_t size);
+  inline ::std::string* mutable_phdhdr_postnocut_amino();
+  inline ::std::string* release_phdhdr_postnocut_amino();
+  inline void set_allocated_phdhdr_postnocut_amino(::std::string* phdhdr_postnocut_amino);
+
+  // required int32 phdhdr_missed_cleavage = 11;
+  inline bool has_phdhdr_missed_cleavage() const;
+  inline void clear_phdhdr_missed_cleavage();
+  static const int kPhdhdrMissedCleavageFieldNumber = 11;
+  inline ::google::protobuf::int32 phdhdr_missed_cleavage() const;
+  inline void set_phdhdr_missed_cleavage(::google::protobuf::int32 value);
+
+  // required int32 phdhdr_semi_tryptic = 12;
+  inline bool has_phdhdr_semi_tryptic() const;
+  inline void clear_phdhdr_semi_tryptic();
+  static const int kPhdhdrSemiTrypticFieldNumber = 12;
+  inline ::google::protobuf::int32 phdhdr_semi_tryptic() const;
+  inline void set_phdhdr_semi_tryptic(::google::protobuf::int32 value);
 
   // @@protoc_insertion_point(class_scope:peptide_hash_database.phd_header)
  private:
@@ -557,8 +509,18 @@ class phd_header : public ::google::protobuf::Message {
   inline void clear_has_phdhdr_hash_file_name();
   inline void set_has_phdhdr_hash_file_digest();
   inline void clear_has_phdhdr_hash_file_digest();
-  inline void set_has_phdhdr_params();
-  inline void clear_has_phdhdr_params();
+  inline void set_has_phdhdr_precut_amino();
+  inline void clear_has_phdhdr_precut_amino();
+  inline void set_has_phdhdr_postcut_amino();
+  inline void clear_has_phdhdr_postcut_amino();
+  inline void set_has_phdhdr_prenocut_amino();
+  inline void clear_has_phdhdr_prenocut_amino();
+  inline void set_has_phdhdr_postnocut_amino();
+  inline void clear_has_phdhdr_postnocut_amino();
+  inline void set_has_phdhdr_missed_cleavage();
+  inline void clear_has_phdhdr_missed_cleavage();
+  inline void set_has_phdhdr_semi_tryptic();
+  inline void clear_has_phdhdr_semi_tryptic();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -568,10 +530,15 @@ class phd_header : public ::google::protobuf::Message {
   ::std::string* phdhdr_protein_source_file_digest_;
   ::std::string* phdhdr_hash_file_name_;
   ::std::string* phdhdr_hash_file_digest_;
-  ::peptide_hash_database::phd_parameters* phdhdr_params_;
+  ::std::string* phdhdr_precut_amino_;
+  ::std::string* phdhdr_postcut_amino_;
+  ::std::string* phdhdr_prenocut_amino_;
+  ::std::string* phdhdr_postnocut_amino_;
+  ::google::protobuf::int32 phdhdr_missed_cleavage_;
+  ::google::protobuf::int32 phdhdr_semi_tryptic_;
 
   mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(7 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(12 + 31) / 32];
 
   friend void  protobuf_AddDesc_protein_5fpep_5fhash_2eproto();
   friend void protobuf_AssignDesc_protein_5fpep_5fhash_2eproto();
@@ -731,7 +698,7 @@ class phd_file : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional .peptide_hash_database.phd_header phdhdr = 1;
+  // required .peptide_hash_database.phd_header phdhdr = 1;
   inline bool has_phdhdr() const;
   inline void clear_phdhdr();
   static const int kPhdhdrFieldNumber = 1;
@@ -739,30 +706,6 @@ class phd_file : public ::google::protobuf::Message {
   inline ::peptide_hash_database::phd_header* mutable_phdhdr();
   inline ::peptide_hash_database::phd_header* release_phdhdr();
   inline void set_allocated_phdhdr(::peptide_hash_database::phd_header* phdhdr);
-
-  // repeated .peptide_hash_database.phd_protein phdpro = 2;
-  inline int phdpro_size() const;
-  inline void clear_phdpro();
-  static const int kPhdproFieldNumber = 2;
-  inline const ::peptide_hash_database::phd_protein& phdpro(int index) const;
-  inline ::peptide_hash_database::phd_protein* mutable_phdpro(int index);
-  inline ::peptide_hash_database::phd_protein* add_phdpro();
-  inline const ::google::protobuf::RepeatedPtrField< ::peptide_hash_database::phd_protein >&
-      phdpro() const;
-  inline ::google::protobuf::RepeatedPtrField< ::peptide_hash_database::phd_protein >*
-      mutable_phdpro();
-
-  // repeated .peptide_hash_database.phd_peptide_mass phdpepm = 3;
-  inline int phdpepm_size() const;
-  inline void clear_phdpepm();
-  static const int kPhdpepmFieldNumber = 3;
-  inline const ::peptide_hash_database::phd_peptide_mass& phdpepm(int index) const;
-  inline ::peptide_hash_database::phd_peptide_mass* mutable_phdpepm(int index);
-  inline ::peptide_hash_database::phd_peptide_mass* add_phdpepm();
-  inline const ::google::protobuf::RepeatedPtrField< ::peptide_hash_database::phd_peptide_mass >&
-      phdpepm() const;
-  inline ::google::protobuf::RepeatedPtrField< ::peptide_hash_database::phd_peptide_mass >*
-      mutable_phdpepm();
 
   // @@protoc_insertion_point(class_scope:peptide_hash_database.phd_file)
  private:
@@ -772,11 +715,9 @@ class phd_file : public ::google::protobuf::Message {
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::peptide_hash_database::phd_header* phdhdr_;
-  ::google::protobuf::RepeatedPtrField< ::peptide_hash_database::phd_protein > phdpro_;
-  ::google::protobuf::RepeatedPtrField< ::peptide_hash_database::phd_peptide_mass > phdpepm_;
 
   mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(1 + 31) / 32];
 
   friend void  protobuf_AddDesc_protein_5fpep_5fhash_2eproto();
   friend void protobuf_AssignDesc_protein_5fpep_5fhash_2eproto();
@@ -1024,354 +965,27 @@ inline void phd_peptide::set_phdpep_peplen(::google::protobuf::int32 value) {
   phdpep_peplen_ = value;
 }
 
-// required int32 phdpep_cleavedpep = 4;
-inline bool phd_peptide::has_phdpep_cleavedpep() const {
+// required .peptide_hash_database.phd_peptide.peptide_type phdpep_type = 4;
+inline bool phd_peptide::has_phdpep_type() const {
   return (_has_bits_[0] & 0x00000008u) != 0;
 }
-inline void phd_peptide::set_has_phdpep_cleavedpep() {
+inline void phd_peptide::set_has_phdpep_type() {
   _has_bits_[0] |= 0x00000008u;
 }
-inline void phd_peptide::clear_has_phdpep_cleavedpep() {
+inline void phd_peptide::clear_has_phdpep_type() {
   _has_bits_[0] &= ~0x00000008u;
 }
-inline void phd_peptide::clear_phdpep_cleavedpep() {
-  phdpep_cleavedpep_ = 0;
-  clear_has_phdpep_cleavedpep();
+inline void phd_peptide::clear_phdpep_type() {
+  phdpep_type_ = 1;
+  clear_has_phdpep_type();
 }
-inline ::google::protobuf::int32 phd_peptide::phdpep_cleavedpep() const {
-  return phdpep_cleavedpep_;
+inline ::peptide_hash_database::phd_peptide_peptide_type phd_peptide::phdpep_type() const {
+  return static_cast< ::peptide_hash_database::phd_peptide_peptide_type >(phdpep_type_);
 }
-inline void phd_peptide::set_phdpep_cleavedpep(::google::protobuf::int32 value) {
-  set_has_phdpep_cleavedpep();
-  phdpep_cleavedpep_ = value;
-}
-
-// -------------------------------------------------------------------
-
-// phd_parameters
-
-// required string phdparam_precut_amino = 1;
-inline bool phd_parameters::has_phdparam_precut_amino() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
-}
-inline void phd_parameters::set_has_phdparam_precut_amino() {
-  _has_bits_[0] |= 0x00000001u;
-}
-inline void phd_parameters::clear_has_phdparam_precut_amino() {
-  _has_bits_[0] &= ~0x00000001u;
-}
-inline void phd_parameters::clear_phdparam_precut_amino() {
-  if (phdparam_precut_amino_ != &::google::protobuf::internal::kEmptyString) {
-    phdparam_precut_amino_->clear();
-  }
-  clear_has_phdparam_precut_amino();
-}
-inline const ::std::string& phd_parameters::phdparam_precut_amino() const {
-  return *phdparam_precut_amino_;
-}
-inline void phd_parameters::set_phdparam_precut_amino(const ::std::string& value) {
-  set_has_phdparam_precut_amino();
-  if (phdparam_precut_amino_ == &::google::protobuf::internal::kEmptyString) {
-    phdparam_precut_amino_ = new ::std::string;
-  }
-  phdparam_precut_amino_->assign(value);
-}
-inline void phd_parameters::set_phdparam_precut_amino(const char* value) {
-  set_has_phdparam_precut_amino();
-  if (phdparam_precut_amino_ == &::google::protobuf::internal::kEmptyString) {
-    phdparam_precut_amino_ = new ::std::string;
-  }
-  phdparam_precut_amino_->assign(value);
-}
-inline void phd_parameters::set_phdparam_precut_amino(const char* value, size_t size) {
-  set_has_phdparam_precut_amino();
-  if (phdparam_precut_amino_ == &::google::protobuf::internal::kEmptyString) {
-    phdparam_precut_amino_ = new ::std::string;
-  }
-  phdparam_precut_amino_->assign(reinterpret_cast<const char*>(value), size);
-}
-inline ::std::string* phd_parameters::mutable_phdparam_precut_amino() {
-  set_has_phdparam_precut_amino();
-  if (phdparam_precut_amino_ == &::google::protobuf::internal::kEmptyString) {
-    phdparam_precut_amino_ = new ::std::string;
-  }
-  return phdparam_precut_amino_;
-}
-inline ::std::string* phd_parameters::release_phdparam_precut_amino() {
-  clear_has_phdparam_precut_amino();
-  if (phdparam_precut_amino_ == &::google::protobuf::internal::kEmptyString) {
-    return NULL;
-  } else {
-    ::std::string* temp = phdparam_precut_amino_;
-    phdparam_precut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-    return temp;
-  }
-}
-inline void phd_parameters::set_allocated_phdparam_precut_amino(::std::string* phdparam_precut_amino) {
-  if (phdparam_precut_amino_ != &::google::protobuf::internal::kEmptyString) {
-    delete phdparam_precut_amino_;
-  }
-  if (phdparam_precut_amino) {
-    set_has_phdparam_precut_amino();
-    phdparam_precut_amino_ = phdparam_precut_amino;
-  } else {
-    clear_has_phdparam_precut_amino();
-    phdparam_precut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-  }
-}
-
-// required string phdparam_postcut_amino = 2;
-inline bool phd_parameters::has_phdparam_postcut_amino() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
-}
-inline void phd_parameters::set_has_phdparam_postcut_amino() {
-  _has_bits_[0] |= 0x00000002u;
-}
-inline void phd_parameters::clear_has_phdparam_postcut_amino() {
-  _has_bits_[0] &= ~0x00000002u;
-}
-inline void phd_parameters::clear_phdparam_postcut_amino() {
-  if (phdparam_postcut_amino_ != &::google::protobuf::internal::kEmptyString) {
-    phdparam_postcut_amino_->clear();
-  }
-  clear_has_phdparam_postcut_amino();
-}
-inline const ::std::string& phd_parameters::phdparam_postcut_amino() const {
-  return *phdparam_postcut_amino_;
-}
-inline void phd_parameters::set_phdparam_postcut_amino(const ::std::string& value) {
-  set_has_phdparam_postcut_amino();
-  if (phdparam_postcut_amino_ == &::google::protobuf::internal::kEmptyString) {
-    phdparam_postcut_amino_ = new ::std::string;
-  }
-  phdparam_postcut_amino_->assign(value);
-}
-inline void phd_parameters::set_phdparam_postcut_amino(const char* value) {
-  set_has_phdparam_postcut_amino();
-  if (phdparam_postcut_amino_ == &::google::protobuf::internal::kEmptyString) {
-    phdparam_postcut_amino_ = new ::std::string;
-  }
-  phdparam_postcut_amino_->assign(value);
-}
-inline void phd_parameters::set_phdparam_postcut_amino(const char* value, size_t size) {
-  set_has_phdparam_postcut_amino();
-  if (phdparam_postcut_amino_ == &::google::protobuf::internal::kEmptyString) {
-    phdparam_postcut_amino_ = new ::std::string;
-  }
-  phdparam_postcut_amino_->assign(reinterpret_cast<const char*>(value), size);
-}
-inline ::std::string* phd_parameters::mutable_phdparam_postcut_amino() {
-  set_has_phdparam_postcut_amino();
-  if (phdparam_postcut_amino_ == &::google::protobuf::internal::kEmptyString) {
-    phdparam_postcut_amino_ = new ::std::string;
-  }
-  return phdparam_postcut_amino_;
-}
-inline ::std::string* phd_parameters::release_phdparam_postcut_amino() {
-  clear_has_phdparam_postcut_amino();
-  if (phdparam_postcut_amino_ == &::google::protobuf::internal::kEmptyString) {
-    return NULL;
-  } else {
-    ::std::string* temp = phdparam_postcut_amino_;
-    phdparam_postcut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-    return temp;
-  }
-}
-inline void phd_parameters::set_allocated_phdparam_postcut_amino(::std::string* phdparam_postcut_amino) {
-  if (phdparam_postcut_amino_ != &::google::protobuf::internal::kEmptyString) {
-    delete phdparam_postcut_amino_;
-  }
-  if (phdparam_postcut_amino) {
-    set_has_phdparam_postcut_amino();
-    phdparam_postcut_amino_ = phdparam_postcut_amino;
-  } else {
-    clear_has_phdparam_postcut_amino();
-    phdparam_postcut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-  }
-}
-
-// required string phdparam_prenocut_amino = 3;
-inline bool phd_parameters::has_phdparam_prenocut_amino() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
-}
-inline void phd_parameters::set_has_phdparam_prenocut_amino() {
-  _has_bits_[0] |= 0x00000004u;
-}
-inline void phd_parameters::clear_has_phdparam_prenocut_amino() {
-  _has_bits_[0] &= ~0x00000004u;
-}
-inline void phd_parameters::clear_phdparam_prenocut_amino() {
-  if (phdparam_prenocut_amino_ != &::google::protobuf::internal::kEmptyString) {
-    phdparam_prenocut_amino_->clear();
-  }
-  clear_has_phdparam_prenocut_amino();
-}
-inline const ::std::string& phd_parameters::phdparam_prenocut_amino() const {
-  return *phdparam_prenocut_amino_;
-}
-inline void phd_parameters::set_phdparam_prenocut_amino(const ::std::string& value) {
-  set_has_phdparam_prenocut_amino();
-  if (phdparam_prenocut_amino_ == &::google::protobuf::internal::kEmptyString) {
-    phdparam_prenocut_amino_ = new ::std::string;
-  }
-  phdparam_prenocut_amino_->assign(value);
-}
-inline void phd_parameters::set_phdparam_prenocut_amino(const char* value) {
-  set_has_phdparam_prenocut_amino();
-  if (phdparam_prenocut_amino_ == &::google::protobuf::internal::kEmptyString) {
-    phdparam_prenocut_amino_ = new ::std::string;
-  }
-  phdparam_prenocut_amino_->assign(value);
-}
-inline void phd_parameters::set_phdparam_prenocut_amino(const char* value, size_t size) {
-  set_has_phdparam_prenocut_amino();
-  if (phdparam_prenocut_amino_ == &::google::protobuf::internal::kEmptyString) {
-    phdparam_prenocut_amino_ = new ::std::string;
-  }
-  phdparam_prenocut_amino_->assign(reinterpret_cast<const char*>(value), size);
-}
-inline ::std::string* phd_parameters::mutable_phdparam_prenocut_amino() {
-  set_has_phdparam_prenocut_amino();
-  if (phdparam_prenocut_amino_ == &::google::protobuf::internal::kEmptyString) {
-    phdparam_prenocut_amino_ = new ::std::string;
-  }
-  return phdparam_prenocut_amino_;
-}
-inline ::std::string* phd_parameters::release_phdparam_prenocut_amino() {
-  clear_has_phdparam_prenocut_amino();
-  if (phdparam_prenocut_amino_ == &::google::protobuf::internal::kEmptyString) {
-    return NULL;
-  } else {
-    ::std::string* temp = phdparam_prenocut_amino_;
-    phdparam_prenocut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-    return temp;
-  }
-}
-inline void phd_parameters::set_allocated_phdparam_prenocut_amino(::std::string* phdparam_prenocut_amino) {
-  if (phdparam_prenocut_amino_ != &::google::protobuf::internal::kEmptyString) {
-    delete phdparam_prenocut_amino_;
-  }
-  if (phdparam_prenocut_amino) {
-    set_has_phdparam_prenocut_amino();
-    phdparam_prenocut_amino_ = phdparam_prenocut_amino;
-  } else {
-    clear_has_phdparam_prenocut_amino();
-    phdparam_prenocut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-  }
-}
-
-// required string phdparam_postnocut_amino = 4;
-inline bool phd_parameters::has_phdparam_postnocut_amino() const {
-  return (_has_bits_[0] & 0x00000008u) != 0;
-}
-inline void phd_parameters::set_has_phdparam_postnocut_amino() {
-  _has_bits_[0] |= 0x00000008u;
-}
-inline void phd_parameters::clear_has_phdparam_postnocut_amino() {
-  _has_bits_[0] &= ~0x00000008u;
-}
-inline void phd_parameters::clear_phdparam_postnocut_amino() {
-  if (phdparam_postnocut_amino_ != &::google::protobuf::internal::kEmptyString) {
-    phdparam_postnocut_amino_->clear();
-  }
-  clear_has_phdparam_postnocut_amino();
-}
-inline const ::std::string& phd_parameters::phdparam_postnocut_amino() const {
-  return *phdparam_postnocut_amino_;
-}
-inline void phd_parameters::set_phdparam_postnocut_amino(const ::std::string& value) {
-  set_has_phdparam_postnocut_amino();
-  if (phdparam_postnocut_amino_ == &::google::protobuf::internal::kEmptyString) {
-    phdparam_postnocut_amino_ = new ::std::string;
-  }
-  phdparam_postnocut_amino_->assign(value);
-}
-inline void phd_parameters::set_phdparam_postnocut_amino(const char* value) {
-  set_has_phdparam_postnocut_amino();
-  if (phdparam_postnocut_amino_ == &::google::protobuf::internal::kEmptyString) {
-    phdparam_postnocut_amino_ = new ::std::string;
-  }
-  phdparam_postnocut_amino_->assign(value);
-}
-inline void phd_parameters::set_phdparam_postnocut_amino(const char* value, size_t size) {
-  set_has_phdparam_postnocut_amino();
-  if (phdparam_postnocut_amino_ == &::google::protobuf::internal::kEmptyString) {
-    phdparam_postnocut_amino_ = new ::std::string;
-  }
-  phdparam_postnocut_amino_->assign(reinterpret_cast<const char*>(value), size);
-}
-inline ::std::string* phd_parameters::mutable_phdparam_postnocut_amino() {
-  set_has_phdparam_postnocut_amino();
-  if (phdparam_postnocut_amino_ == &::google::protobuf::internal::kEmptyString) {
-    phdparam_postnocut_amino_ = new ::std::string;
-  }
-  return phdparam_postnocut_amino_;
-}
-inline ::std::string* phd_parameters::release_phdparam_postnocut_amino() {
-  clear_has_phdparam_postnocut_amino();
-  if (phdparam_postnocut_amino_ == &::google::protobuf::internal::kEmptyString) {
-    return NULL;
-  } else {
-    ::std::string* temp = phdparam_postnocut_amino_;
-    phdparam_postnocut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-    return temp;
-  }
-}
-inline void phd_parameters::set_allocated_phdparam_postnocut_amino(::std::string* phdparam_postnocut_amino) {
-  if (phdparam_postnocut_amino_ != &::google::protobuf::internal::kEmptyString) {
-    delete phdparam_postnocut_amino_;
-  }
-  if (phdparam_postnocut_amino) {
-    set_has_phdparam_postnocut_amino();
-    phdparam_postnocut_amino_ = phdparam_postnocut_amino;
-  } else {
-    clear_has_phdparam_postnocut_amino();
-    phdparam_postnocut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-  }
-}
-
-// required int32 phdparam_missed_cleavage = 5;
-inline bool phd_parameters::has_phdparam_missed_cleavage() const {
-  return (_has_bits_[0] & 0x00000010u) != 0;
-}
-inline void phd_parameters::set_has_phdparam_missed_cleavage() {
-  _has_bits_[0] |= 0x00000010u;
-}
-inline void phd_parameters::clear_has_phdparam_missed_cleavage() {
-  _has_bits_[0] &= ~0x00000010u;
-}
-inline void phd_parameters::clear_phdparam_missed_cleavage() {
-  phdparam_missed_cleavage_ = 0;
-  clear_has_phdparam_missed_cleavage();
-}
-inline ::google::protobuf::int32 phd_parameters::phdparam_missed_cleavage() const {
-  return phdparam_missed_cleavage_;
-}
-inline void phd_parameters::set_phdparam_missed_cleavage(::google::protobuf::int32 value) {
-  set_has_phdparam_missed_cleavage();
-  phdparam_missed_cleavage_ = value;
-}
-
-// required int32 phdparam_semi_tryptic = 6;
-inline bool phd_parameters::has_phdparam_semi_tryptic() const {
-  return (_has_bits_[0] & 0x00000020u) != 0;
-}
-inline void phd_parameters::set_has_phdparam_semi_tryptic() {
-  _has_bits_[0] |= 0x00000020u;
-}
-inline void phd_parameters::clear_has_phdparam_semi_tryptic() {
-  _has_bits_[0] &= ~0x00000020u;
-}
-inline void phd_parameters::clear_phdparam_semi_tryptic() {
-  phdparam_semi_tryptic_ = 0;
-  clear_has_phdparam_semi_tryptic();
-}
-inline ::google::protobuf::int32 phd_parameters::phdparam_semi_tryptic() const {
-  return phdparam_semi_tryptic_;
-}
-inline void phd_parameters::set_phdparam_semi_tryptic(::google::protobuf::int32 value) {
-  set_has_phdparam_semi_tryptic();
-  phdparam_semi_tryptic_ = value;
+inline void phd_peptide::set_phdpep_type(::peptide_hash_database::phd_peptide_peptide_type value) {
+  assert(::peptide_hash_database::phd_peptide_peptide_type_IsValid(value));
+  set_has_phdpep_type();
+  phdpep_type_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -1702,42 +1316,328 @@ inline void phd_header::set_allocated_phdhdr_hash_file_digest(::std::string* phd
   }
 }
 
-// required .peptide_hash_database.phd_parameters phdhdr_params = 7;
-inline bool phd_header::has_phdhdr_params() const {
+// required string phdhdr_precut_amino = 7;
+inline bool phd_header::has_phdhdr_precut_amino() const {
   return (_has_bits_[0] & 0x00000040u) != 0;
 }
-inline void phd_header::set_has_phdhdr_params() {
+inline void phd_header::set_has_phdhdr_precut_amino() {
   _has_bits_[0] |= 0x00000040u;
 }
-inline void phd_header::clear_has_phdhdr_params() {
+inline void phd_header::clear_has_phdhdr_precut_amino() {
   _has_bits_[0] &= ~0x00000040u;
 }
-inline void phd_header::clear_phdhdr_params() {
-  if (phdhdr_params_ != NULL) phdhdr_params_->::peptide_hash_database::phd_parameters::Clear();
-  clear_has_phdhdr_params();
-}
-inline const ::peptide_hash_database::phd_parameters& phd_header::phdhdr_params() const {
-  return phdhdr_params_ != NULL ? *phdhdr_params_ : *default_instance_->phdhdr_params_;
-}
-inline ::peptide_hash_database::phd_parameters* phd_header::mutable_phdhdr_params() {
-  set_has_phdhdr_params();
-  if (phdhdr_params_ == NULL) phdhdr_params_ = new ::peptide_hash_database::phd_parameters;
-  return phdhdr_params_;
-}
-inline ::peptide_hash_database::phd_parameters* phd_header::release_phdhdr_params() {
-  clear_has_phdhdr_params();
-  ::peptide_hash_database::phd_parameters* temp = phdhdr_params_;
-  phdhdr_params_ = NULL;
-  return temp;
-}
-inline void phd_header::set_allocated_phdhdr_params(::peptide_hash_database::phd_parameters* phdhdr_params) {
-  delete phdhdr_params_;
-  phdhdr_params_ = phdhdr_params;
-  if (phdhdr_params) {
-    set_has_phdhdr_params();
-  } else {
-    clear_has_phdhdr_params();
+inline void phd_header::clear_phdhdr_precut_amino() {
+  if (phdhdr_precut_amino_ != &::google::protobuf::internal::kEmptyString) {
+    phdhdr_precut_amino_->clear();
   }
+  clear_has_phdhdr_precut_amino();
+}
+inline const ::std::string& phd_header::phdhdr_precut_amino() const {
+  return *phdhdr_precut_amino_;
+}
+inline void phd_header::set_phdhdr_precut_amino(const ::std::string& value) {
+  set_has_phdhdr_precut_amino();
+  if (phdhdr_precut_amino_ == &::google::protobuf::internal::kEmptyString) {
+    phdhdr_precut_amino_ = new ::std::string;
+  }
+  phdhdr_precut_amino_->assign(value);
+}
+inline void phd_header::set_phdhdr_precut_amino(const char* value) {
+  set_has_phdhdr_precut_amino();
+  if (phdhdr_precut_amino_ == &::google::protobuf::internal::kEmptyString) {
+    phdhdr_precut_amino_ = new ::std::string;
+  }
+  phdhdr_precut_amino_->assign(value);
+}
+inline void phd_header::set_phdhdr_precut_amino(const char* value, size_t size) {
+  set_has_phdhdr_precut_amino();
+  if (phdhdr_precut_amino_ == &::google::protobuf::internal::kEmptyString) {
+    phdhdr_precut_amino_ = new ::std::string;
+  }
+  phdhdr_precut_amino_->assign(reinterpret_cast<const char*>(value), size);
+}
+inline ::std::string* phd_header::mutable_phdhdr_precut_amino() {
+  set_has_phdhdr_precut_amino();
+  if (phdhdr_precut_amino_ == &::google::protobuf::internal::kEmptyString) {
+    phdhdr_precut_amino_ = new ::std::string;
+  }
+  return phdhdr_precut_amino_;
+}
+inline ::std::string* phd_header::release_phdhdr_precut_amino() {
+  clear_has_phdhdr_precut_amino();
+  if (phdhdr_precut_amino_ == &::google::protobuf::internal::kEmptyString) {
+    return NULL;
+  } else {
+    ::std::string* temp = phdhdr_precut_amino_;
+    phdhdr_precut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    return temp;
+  }
+}
+inline void phd_header::set_allocated_phdhdr_precut_amino(::std::string* phdhdr_precut_amino) {
+  if (phdhdr_precut_amino_ != &::google::protobuf::internal::kEmptyString) {
+    delete phdhdr_precut_amino_;
+  }
+  if (phdhdr_precut_amino) {
+    set_has_phdhdr_precut_amino();
+    phdhdr_precut_amino_ = phdhdr_precut_amino;
+  } else {
+    clear_has_phdhdr_precut_amino();
+    phdhdr_precut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  }
+}
+
+// required string phdhdr_postcut_amino = 8;
+inline bool phd_header::has_phdhdr_postcut_amino() const {
+  return (_has_bits_[0] & 0x00000080u) != 0;
+}
+inline void phd_header::set_has_phdhdr_postcut_amino() {
+  _has_bits_[0] |= 0x00000080u;
+}
+inline void phd_header::clear_has_phdhdr_postcut_amino() {
+  _has_bits_[0] &= ~0x00000080u;
+}
+inline void phd_header::clear_phdhdr_postcut_amino() {
+  if (phdhdr_postcut_amino_ != &::google::protobuf::internal::kEmptyString) {
+    phdhdr_postcut_amino_->clear();
+  }
+  clear_has_phdhdr_postcut_amino();
+}
+inline const ::std::string& phd_header::phdhdr_postcut_amino() const {
+  return *phdhdr_postcut_amino_;
+}
+inline void phd_header::set_phdhdr_postcut_amino(const ::std::string& value) {
+  set_has_phdhdr_postcut_amino();
+  if (phdhdr_postcut_amino_ == &::google::protobuf::internal::kEmptyString) {
+    phdhdr_postcut_amino_ = new ::std::string;
+  }
+  phdhdr_postcut_amino_->assign(value);
+}
+inline void phd_header::set_phdhdr_postcut_amino(const char* value) {
+  set_has_phdhdr_postcut_amino();
+  if (phdhdr_postcut_amino_ == &::google::protobuf::internal::kEmptyString) {
+    phdhdr_postcut_amino_ = new ::std::string;
+  }
+  phdhdr_postcut_amino_->assign(value);
+}
+inline void phd_header::set_phdhdr_postcut_amino(const char* value, size_t size) {
+  set_has_phdhdr_postcut_amino();
+  if (phdhdr_postcut_amino_ == &::google::protobuf::internal::kEmptyString) {
+    phdhdr_postcut_amino_ = new ::std::string;
+  }
+  phdhdr_postcut_amino_->assign(reinterpret_cast<const char*>(value), size);
+}
+inline ::std::string* phd_header::mutable_phdhdr_postcut_amino() {
+  set_has_phdhdr_postcut_amino();
+  if (phdhdr_postcut_amino_ == &::google::protobuf::internal::kEmptyString) {
+    phdhdr_postcut_amino_ = new ::std::string;
+  }
+  return phdhdr_postcut_amino_;
+}
+inline ::std::string* phd_header::release_phdhdr_postcut_amino() {
+  clear_has_phdhdr_postcut_amino();
+  if (phdhdr_postcut_amino_ == &::google::protobuf::internal::kEmptyString) {
+    return NULL;
+  } else {
+    ::std::string* temp = phdhdr_postcut_amino_;
+    phdhdr_postcut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    return temp;
+  }
+}
+inline void phd_header::set_allocated_phdhdr_postcut_amino(::std::string* phdhdr_postcut_amino) {
+  if (phdhdr_postcut_amino_ != &::google::protobuf::internal::kEmptyString) {
+    delete phdhdr_postcut_amino_;
+  }
+  if (phdhdr_postcut_amino) {
+    set_has_phdhdr_postcut_amino();
+    phdhdr_postcut_amino_ = phdhdr_postcut_amino;
+  } else {
+    clear_has_phdhdr_postcut_amino();
+    phdhdr_postcut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  }
+}
+
+// required string phdhdr_prenocut_amino = 9;
+inline bool phd_header::has_phdhdr_prenocut_amino() const {
+  return (_has_bits_[0] & 0x00000100u) != 0;
+}
+inline void phd_header::set_has_phdhdr_prenocut_amino() {
+  _has_bits_[0] |= 0x00000100u;
+}
+inline void phd_header::clear_has_phdhdr_prenocut_amino() {
+  _has_bits_[0] &= ~0x00000100u;
+}
+inline void phd_header::clear_phdhdr_prenocut_amino() {
+  if (phdhdr_prenocut_amino_ != &::google::protobuf::internal::kEmptyString) {
+    phdhdr_prenocut_amino_->clear();
+  }
+  clear_has_phdhdr_prenocut_amino();
+}
+inline const ::std::string& phd_header::phdhdr_prenocut_amino() const {
+  return *phdhdr_prenocut_amino_;
+}
+inline void phd_header::set_phdhdr_prenocut_amino(const ::std::string& value) {
+  set_has_phdhdr_prenocut_amino();
+  if (phdhdr_prenocut_amino_ == &::google::protobuf::internal::kEmptyString) {
+    phdhdr_prenocut_amino_ = new ::std::string;
+  }
+  phdhdr_prenocut_amino_->assign(value);
+}
+inline void phd_header::set_phdhdr_prenocut_amino(const char* value) {
+  set_has_phdhdr_prenocut_amino();
+  if (phdhdr_prenocut_amino_ == &::google::protobuf::internal::kEmptyString) {
+    phdhdr_prenocut_amino_ = new ::std::string;
+  }
+  phdhdr_prenocut_amino_->assign(value);
+}
+inline void phd_header::set_phdhdr_prenocut_amino(const char* value, size_t size) {
+  set_has_phdhdr_prenocut_amino();
+  if (phdhdr_prenocut_amino_ == &::google::protobuf::internal::kEmptyString) {
+    phdhdr_prenocut_amino_ = new ::std::string;
+  }
+  phdhdr_prenocut_amino_->assign(reinterpret_cast<const char*>(value), size);
+}
+inline ::std::string* phd_header::mutable_phdhdr_prenocut_amino() {
+  set_has_phdhdr_prenocut_amino();
+  if (phdhdr_prenocut_amino_ == &::google::protobuf::internal::kEmptyString) {
+    phdhdr_prenocut_amino_ = new ::std::string;
+  }
+  return phdhdr_prenocut_amino_;
+}
+inline ::std::string* phd_header::release_phdhdr_prenocut_amino() {
+  clear_has_phdhdr_prenocut_amino();
+  if (phdhdr_prenocut_amino_ == &::google::protobuf::internal::kEmptyString) {
+    return NULL;
+  } else {
+    ::std::string* temp = phdhdr_prenocut_amino_;
+    phdhdr_prenocut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    return temp;
+  }
+}
+inline void phd_header::set_allocated_phdhdr_prenocut_amino(::std::string* phdhdr_prenocut_amino) {
+  if (phdhdr_prenocut_amino_ != &::google::protobuf::internal::kEmptyString) {
+    delete phdhdr_prenocut_amino_;
+  }
+  if (phdhdr_prenocut_amino) {
+    set_has_phdhdr_prenocut_amino();
+    phdhdr_prenocut_amino_ = phdhdr_prenocut_amino;
+  } else {
+    clear_has_phdhdr_prenocut_amino();
+    phdhdr_prenocut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  }
+}
+
+// required string phdhdr_postnocut_amino = 10;
+inline bool phd_header::has_phdhdr_postnocut_amino() const {
+  return (_has_bits_[0] & 0x00000200u) != 0;
+}
+inline void phd_header::set_has_phdhdr_postnocut_amino() {
+  _has_bits_[0] |= 0x00000200u;
+}
+inline void phd_header::clear_has_phdhdr_postnocut_amino() {
+  _has_bits_[0] &= ~0x00000200u;
+}
+inline void phd_header::clear_phdhdr_postnocut_amino() {
+  if (phdhdr_postnocut_amino_ != &::google::protobuf::internal::kEmptyString) {
+    phdhdr_postnocut_amino_->clear();
+  }
+  clear_has_phdhdr_postnocut_amino();
+}
+inline const ::std::string& phd_header::phdhdr_postnocut_amino() const {
+  return *phdhdr_postnocut_amino_;
+}
+inline void phd_header::set_phdhdr_postnocut_amino(const ::std::string& value) {
+  set_has_phdhdr_postnocut_amino();
+  if (phdhdr_postnocut_amino_ == &::google::protobuf::internal::kEmptyString) {
+    phdhdr_postnocut_amino_ = new ::std::string;
+  }
+  phdhdr_postnocut_amino_->assign(value);
+}
+inline void phd_header::set_phdhdr_postnocut_amino(const char* value) {
+  set_has_phdhdr_postnocut_amino();
+  if (phdhdr_postnocut_amino_ == &::google::protobuf::internal::kEmptyString) {
+    phdhdr_postnocut_amino_ = new ::std::string;
+  }
+  phdhdr_postnocut_amino_->assign(value);
+}
+inline void phd_header::set_phdhdr_postnocut_amino(const char* value, size_t size) {
+  set_has_phdhdr_postnocut_amino();
+  if (phdhdr_postnocut_amino_ == &::google::protobuf::internal::kEmptyString) {
+    phdhdr_postnocut_amino_ = new ::std::string;
+  }
+  phdhdr_postnocut_amino_->assign(reinterpret_cast<const char*>(value), size);
+}
+inline ::std::string* phd_header::mutable_phdhdr_postnocut_amino() {
+  set_has_phdhdr_postnocut_amino();
+  if (phdhdr_postnocut_amino_ == &::google::protobuf::internal::kEmptyString) {
+    phdhdr_postnocut_amino_ = new ::std::string;
+  }
+  return phdhdr_postnocut_amino_;
+}
+inline ::std::string* phd_header::release_phdhdr_postnocut_amino() {
+  clear_has_phdhdr_postnocut_amino();
+  if (phdhdr_postnocut_amino_ == &::google::protobuf::internal::kEmptyString) {
+    return NULL;
+  } else {
+    ::std::string* temp = phdhdr_postnocut_amino_;
+    phdhdr_postnocut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    return temp;
+  }
+}
+inline void phd_header::set_allocated_phdhdr_postnocut_amino(::std::string* phdhdr_postnocut_amino) {
+  if (phdhdr_postnocut_amino_ != &::google::protobuf::internal::kEmptyString) {
+    delete phdhdr_postnocut_amino_;
+  }
+  if (phdhdr_postnocut_amino) {
+    set_has_phdhdr_postnocut_amino();
+    phdhdr_postnocut_amino_ = phdhdr_postnocut_amino;
+  } else {
+    clear_has_phdhdr_postnocut_amino();
+    phdhdr_postnocut_amino_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  }
+}
+
+// required int32 phdhdr_missed_cleavage = 11;
+inline bool phd_header::has_phdhdr_missed_cleavage() const {
+  return (_has_bits_[0] & 0x00000400u) != 0;
+}
+inline void phd_header::set_has_phdhdr_missed_cleavage() {
+  _has_bits_[0] |= 0x00000400u;
+}
+inline void phd_header::clear_has_phdhdr_missed_cleavage() {
+  _has_bits_[0] &= ~0x00000400u;
+}
+inline void phd_header::clear_phdhdr_missed_cleavage() {
+  phdhdr_missed_cleavage_ = 0;
+  clear_has_phdhdr_missed_cleavage();
+}
+inline ::google::protobuf::int32 phd_header::phdhdr_missed_cleavage() const {
+  return phdhdr_missed_cleavage_;
+}
+inline void phd_header::set_phdhdr_missed_cleavage(::google::protobuf::int32 value) {
+  set_has_phdhdr_missed_cleavage();
+  phdhdr_missed_cleavage_ = value;
+}
+
+// required int32 phdhdr_semi_tryptic = 12;
+inline bool phd_header::has_phdhdr_semi_tryptic() const {
+  return (_has_bits_[0] & 0x00000800u) != 0;
+}
+inline void phd_header::set_has_phdhdr_semi_tryptic() {
+  _has_bits_[0] |= 0x00000800u;
+}
+inline void phd_header::clear_has_phdhdr_semi_tryptic() {
+  _has_bits_[0] &= ~0x00000800u;
+}
+inline void phd_header::clear_phdhdr_semi_tryptic() {
+  phdhdr_semi_tryptic_ = 0;
+  clear_has_phdhdr_semi_tryptic();
+}
+inline ::google::protobuf::int32 phd_header::phdhdr_semi_tryptic() const {
+  return phdhdr_semi_tryptic_;
+}
+inline void phd_header::set_phdhdr_semi_tryptic(::google::protobuf::int32 value) {
+  set_has_phdhdr_semi_tryptic();
+  phdhdr_semi_tryptic_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -1795,7 +1695,7 @@ phd_peptide_mass::mutable_phdpmass_peptide_list() {
 
 // phd_file
 
-// optional .peptide_hash_database.phd_header phdhdr = 1;
+// required .peptide_hash_database.phd_header phdhdr = 1;
 inline bool phd_file::has_phdhdr() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -1833,56 +1733,6 @@ inline void phd_file::set_allocated_phdhdr(::peptide_hash_database::phd_header* 
   }
 }
 
-// repeated .peptide_hash_database.phd_protein phdpro = 2;
-inline int phd_file::phdpro_size() const {
-  return phdpro_.size();
-}
-inline void phd_file::clear_phdpro() {
-  phdpro_.Clear();
-}
-inline const ::peptide_hash_database::phd_protein& phd_file::phdpro(int index) const {
-  return phdpro_.Get(index);
-}
-inline ::peptide_hash_database::phd_protein* phd_file::mutable_phdpro(int index) {
-  return phdpro_.Mutable(index);
-}
-inline ::peptide_hash_database::phd_protein* phd_file::add_phdpro() {
-  return phdpro_.Add();
-}
-inline const ::google::protobuf::RepeatedPtrField< ::peptide_hash_database::phd_protein >&
-phd_file::phdpro() const {
-  return phdpro_;
-}
-inline ::google::protobuf::RepeatedPtrField< ::peptide_hash_database::phd_protein >*
-phd_file::mutable_phdpro() {
-  return &phdpro_;
-}
-
-// repeated .peptide_hash_database.phd_peptide_mass phdpepm = 3;
-inline int phd_file::phdpepm_size() const {
-  return phdpepm_.size();
-}
-inline void phd_file::clear_phdpepm() {
-  phdpepm_.Clear();
-}
-inline const ::peptide_hash_database::phd_peptide_mass& phd_file::phdpepm(int index) const {
-  return phdpepm_.Get(index);
-}
-inline ::peptide_hash_database::phd_peptide_mass* phd_file::mutable_phdpepm(int index) {
-  return phdpepm_.Mutable(index);
-}
-inline ::peptide_hash_database::phd_peptide_mass* phd_file::add_phdpepm() {
-  return phdpepm_.Add();
-}
-inline const ::google::protobuf::RepeatedPtrField< ::peptide_hash_database::phd_peptide_mass >&
-phd_file::phdpepm() const {
-  return phdpepm_;
-}
-inline ::google::protobuf::RepeatedPtrField< ::peptide_hash_database::phd_peptide_mass >*
-phd_file::mutable_phdpepm() {
-  return &phdpepm_;
-}
-
 
 // @@protoc_insertion_point(namespace_scope)
 
@@ -1892,6 +1742,10 @@ phd_file::mutable_phdpepm() {
 namespace google {
 namespace protobuf {
 
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::peptide_hash_database::phd_peptide_peptide_type>() {
+  return ::peptide_hash_database::phd_peptide_peptide_type_descriptor();
+}
 
 }  // namespace google
 }  // namespace protobuf
