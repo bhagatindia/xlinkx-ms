@@ -15,3 +15,12 @@ exsting one. A new file is created when:
 * enzyme cut paramaeters doesnt match
 * the protein database file name doesnt match
 * the protein database file digest doesnt match the digest the digest present in phd
+
+Building the xlinkx-hash library:
+make
+
+Using xlinkx-hash is illustrated in phd_main
+
+Building phd_main: make phd-main
+
+./phd-main protein_sequence_database.txt 1 - K - P 1 phd.txt

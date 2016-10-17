@@ -1,0 +1,43 @@
+package peptide_hash_database;
+
+message phd_protein {
+   optional string            phdpro_name = 1;
+   optional int32             phdpro_id = 2;
+   optional string            phdpro_pepseq = 3;
+}
+
+message phd_peptide {
+   optional int32             phdpep_protein_id = 1;
+   optional int32             phdpep_pepstart = 2;
+   optional int32             phdpep_peplen = 3;
+   optional int32             phdpep_cleavedpep = 4; // This should be an enum; left, right, semi, full
+   optional string            phdpep_sequence = 5;
+}
+
+message phd_header {
+   optional int32             phdhdr_version = 1;
+   optional string            phdhdr_protein_source_filename = 2;
+   optional string            phdhdr_protein_source_file_digest = 3;
+   optional int32             phdhdr_num_proteins = 4;
+   optional string            phdhdr_hash_file_name = 5;
+   optional string            phdhdr_hash_file_digest = 6;
+
+   optional string            phdhdr_precut_amino = 7;
+   optional string            phdhdr_postcut_amino = 8;
+   optional string            phdhdr_prenocut_amino = 9;
+   optional string            phdhdr_postnocut_amino = 10;
+   optional int32             phdhdr_missed_cleavage = 11;
+   optional int32             phdhdr_semi_tryptic = 12;
+
+}
+
+message phd_peptide_mass {
+   optional int32             phdpmass_mass = 1;
+   repeated phd_peptide       phdpmass_peptide_list = 2;
+}
+
+message phd_file {
+   optional phd_header        phdhdr = 1;
+   repeated phd_protein       phdpro = 2;
+   repeated phd_peptide_mass  phdpepm = 3;
+}
