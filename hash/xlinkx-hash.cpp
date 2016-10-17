@@ -29,7 +29,7 @@ vector<string*>* protein_hash_db_::phd_get_peptides_ofmass(int mass)
 }
 
 #define MIN_FRAGMENT_MASS 600
-#define MAX_FRAGMENT_MASS 60000
+#define MAX_FRAGMENT_MASS 6000
 
 #define MAX_EDGES 30
 
@@ -136,8 +136,8 @@ void phd_basic_cut_pre_post(enzyme_cut_params params, const string protein_seq,
    const string sposts = params.postcut_amino;
    size_t pos = 0, length = protein_seq.length(), npres, nposts, cpos, start = pos;
 
-   cout << "Protein length: " << length << " and pre split string " << spres << " and post split string is " << sposts << " and position is " << pos << endl;
-   cout << "Protein sequence is: " << protein_seq << endl;
+   //cout << "Protein length: " << length << " and pre split string " << spres << " and post split string is " << sposts << " and position is " << pos << endl;
+   //cout << "Protein sequence is: " << protein_seq << endl;
 
    while ((pos != std::string::npos) && (start < length)) {
       range *r = new range; r->start = pos;
@@ -161,16 +161,16 @@ void phd_basic_cut_pre_post(enzyme_cut_params params, const string protein_seq,
          r->length = pos - r->start;
          start = pos;
       }
-      cout << "Splits are " << npres << " " << nposts << " " << " final position is " << pos << endl;
+      //cout << "Splits are " << npres << " " << nposts << " " << " final position is " << pos << endl;
 
       splits.push_back(r);
    }
 
    // Now we get the basic peptides
-   cout << "We got the basic peptides based on the pre and post conditions" << endl;
+   //cout << "We got the basic peptides based on the pre and post conditions" << endl;
 
    for (range *r: splits) {
-      cout << "Range: Start is " << r->start << " and length is " << r->length << endl;
+      //cout << "Range: Start is " << r->start << " and length is " << r->length << endl;
    }
 
 }
@@ -184,7 +184,7 @@ void phd_handle_post_merge(enzyme_cut_params params, const string protein_seq,
 
    vector<range *>::iterator split_iterator;
 
-   cout << "Post no cut " << nocut_spost << endl;
+   //cout << "Post no cut " << nocut_spost << endl;
 
    for (split_iterator = splits.begin(); split_iterator != splits.end(); split_iterator++) {
       range *r = *split_iterator;
@@ -207,10 +207,10 @@ void phd_handle_post_merge(enzyme_cut_params params, const string protein_seq,
       nocut_splits.push_back(r_new);
    }
    
-   cout << "No cut splits" << endl;
+   //cout << "No cut splits" << endl;
 
    for (range *r: nocut_splits) {
-      cout << "Range: Start is " << r->start << " and length is " << r->length << endl;
+      //cout << "Range: Start is " << r->start << " and length is " << r->length << endl;
    }
 
 }
@@ -220,13 +220,13 @@ void phd_handle_missed_cleavage(enzyme_cut_params params, const string protein_s
 {
    // We have to handle missing cleavage
    int missed_cleavage = params.missed_cleavage;
-   cout << "Missed cleavage " << missed_cleavage << endl;
+   //cout << "Missed cleavage " << missed_cleavage << endl;
 
    if (missed_cleavage) {
       int num_cuts = nocut_splits.size();
       for (int i = 0; i < num_cuts - 1; i++) {
          range *r = nocut_splits.at(i), *r_next = nocut_splits.at(i+1);
-         cout << "Peeking at the end " << (protein_seq.c_str())[r->start + r->length -1] << endl;
+         //cout << "Peeking at the end " << (protein_seq.c_str())[r->start + r->length -1] << endl;
          if ((protein_seq.c_str())[r->start + r->length -1] == 'K') {
             range *r_new = new range;
             r_new->start = r->start;
@@ -238,11 +238,13 @@ void phd_handle_missed_cleavage(enzyme_cut_params params, const string protein_s
       }
    }
 
+   /*
    for (range *r: nocut_splits) {
       cout << "Range: Start is " << r->start << " and length is " << r->length << 
                " and missed cleavage " << r->missed << " Left is " << r->left << 
                " Right is " << r->right << endl;
    }
+   */
 
 }
 
@@ -250,7 +252,7 @@ void phd_add_missed_semi_tryptic(const string protein_seq, range* r,
                                  vector<range *> &nocut_splits)
 {
    // Left tryptic
-   cout << "Left trypic peptides for missed cleavages " << r->start << " " << r->length << " " << r->missed << endl;
+   //cout << "Left trypic peptides for missed cleavages " << r->start << " " << r->length << " " << r->missed << endl;
    for (int pos = r->start + r->missed + 1; pos < (r->start + r->length); pos++) {
       range *r_new = new range;
       r_new->start = r->start;
@@ -305,7 +307,7 @@ void phd_handle_semi_tryptic(enzyme_cut_params params, const string protein_seq,
 {
    // We have to add sem-tryptic peptides
    int semi_tryptic = params.semi_tryptic;
-   cout << "Semi-tryptic " << semi_tryptic << endl;
+   //cout << "Semi-tryptic " << semi_tryptic << endl;
 
    if (semi_tryptic) {
       int num_count = nocut_splits.size();
@@ -352,8 +354,6 @@ void phd_split_protein_sequence_peptides(enzyme_cut_params params,
 
    phd_handle_post_merge(params, protein_seq, splits, nocut_splits);
 
-   // Cleanup splits
-
    phd_handle_missed_cleavage(params, protein_seq, nocut_splits);
 
    phd_handle_semi_tryptic(params, protein_seq, nocut_splits);
@@ -361,17 +361,22 @@ void phd_split_protein_sequence_peptides(enzyme_cut_params params,
    for (range *r: nocut_splits) {
       string peptide = protein_seq.substr(r->start, r->length);
       int mass = phd_calculate_mass_peptide(peptide);
+      /*
       cout << "Range: Start is " << r->start << " and length is " << r->length << 
                " and missed cleavage " << r->missed << " Left is " << r->left << 
                " Right is " << r->right << " and the peptide is " << peptide << 
                " and its mass is " << mass << endl;
+      */
       if (mass < MAX_FRAGMENT_MASS) {
          phd_add_peptide_into_hash(r, peptide, pro_seq, pfile.mutable_phdpepm(mass));
       }
    }
 
-   // Clean up nocut splits
+   // Cleanup splits
+   for (range *r: splits) delete r;
 
+   // Clean up nocut splits
+   for (range *r: nocut_splits) delete r;
 }
 
 void phd_add_peptide_hash_database (peptide_hash_database::phd_file &pfile, 
@@ -484,12 +489,55 @@ int phd_load_hash_file (const char *hash_file, peptide_hash_database::phd_file &
    return 1;
 }
 
+int phd_compare_enzyme_cut_params_hash_file (enzyme_cut_params params,
+                                    peptide_hash_database::phd_header phdr)
+{
+   int ret_value = 1;
+
+   cout << "Precut amino acid: " << params.precut_amino << " file " << phdr.phdhdr_precut_amino() << endl;
+   if (params.precut_amino.compare(phdr.phdhdr_precut_amino())) ret_value = 0;
+
+   cout << "Postcut amino acid: " << params.postcut_amino << " file " << phdr.phdhdr_postcut_amino() << endl;
+   if (params.postcut_amino.compare(phdr.phdhdr_postcut_amino())) ret_value = 0;
+
+   cout << "Pre nocut amino acid: " << params.prenocut_amino << " file " << phdr.phdhdr_prenocut_amino() << endl;
+   if (params.prenocut_amino.compare(phdr.phdhdr_prenocut_amino())) ret_value = 0;
+
+   cout << "Post nocut amino acid: " << params.postnocut_amino << " file " << phdr.phdhdr_postnocut_amino() << endl;
+   if (params.postnocut_amino.compare(phdr.phdhdr_postnocut_amino())) ret_value = 0;
+
+   cout << "Missed cleavage: " << params.missed_cleavage << " file " << phdr.phdhdr_missed_cleavage() << endl;
+   if ((params.missed_cleavage != phdr.phdhdr_missed_cleavage())) ret_value = 0;
+
+   cout << "Semi tryptic : " << params.semi_tryptic << " file " << phdr.phdhdr_semi_tryptic() << endl;
+   if ((params.semi_tryptic != phdr.phdhdr_semi_tryptic())) ret_value = 0;
+
+   return ret_value;
+}
+
 inline int phd_hash_file_match_criteria (const char *protein_file,
                               enzyme_cut_params params, const char *phd_file)
 {
-   struct stat buffer;   
-   //return (stat (phd_file, &buffer) == 0); 
-   return 0;
+   peptide_hash_database::phd_file pfile;
+   int ret_value = 0;
+
+   cout << "File name is " << phd_file << endl;
+   fstream input(phd_file, ios::in | ios::binary);
+   if (!input) {
+      cout << phd_file << ": File not found.  Creating a new file." << endl;
+      return 0;
+   }
+
+   if (pfile.ParseFromIstream(&input)) {
+      cout << "Reading the hash file and comparing the header param: " << phd_file << endl;
+      peptide_hash_database::phd_header phdr = pfile.phdhdr();
+      ret_value = phd_compare_enzyme_cut_params_hash_file(params, phdr);
+      if (ret_value) cout << "Comparing returned equal parameters" << endl;
+      else cout << "Comparing returned non-equal parameters" << endl;
+   }
+
+   input.close();
+   return ret_value;
 }
       
 const protein_hash_db_t phd_retrieve_hash_db (const char *protein_file, 
