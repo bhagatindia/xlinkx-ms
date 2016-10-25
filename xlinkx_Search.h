@@ -20,13 +20,15 @@
 #include "Common.h"
 #include "xlinkx_DataInternal.h"
 
+#include "hash/xlinkx-hash.h"
+
 class xlinkx_Search
 {
 public:
    xlinkx_Search();
    ~xlinkx_Search();
 
-   static void SearchForPeptides(void);
+   static void SearchForPeptides(const char *, enzyme_cut_params, const char *);
    static bool WithinTolerance(double dMass1,
                                double dMass2);
 

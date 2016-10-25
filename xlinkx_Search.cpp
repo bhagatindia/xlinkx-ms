@@ -30,20 +30,35 @@ xlinkx_Search::~xlinkx_Search()
 }
 
 
-void xlinkx_Search::SearchForPeptides(void)
+void xlinkx_Search::SearchForPeptides(const char *protein_file, enzyme_cut_params params, const char *pep_hash_file)
 {
    int i;
    int ii;
 
    // If PeptideHash not present, generate it now; otherwise open the hash file.
+   protein_hash_db_t phdp = phd_retrieve_hash_db(protein_file, params, pep_hash_file);
 
    for (i=0; i<(int)pvSpectrumList.size(); i++)
    {
       for (ii=0; ii<(int)pvSpectrumList.at(i).pvdPrecursors.size(); ii++)
       {
+
          printf("scan %d, %f, %f\n", pvSpectrumList.at(i).iScanNumber,
                pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1,
                pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2);
+
+	 cout << "Retrieving peptides of mass " << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 << 
+		" and " << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 << endl;
+
+	 vector<string*> *peptides = phdp->phd_get_peptides_ofmass(pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1);
+	 for (string *peptide : *peptides) {
+		 cout << *peptide << endl;
+	 }
+
+	 peptides = phdp->phd_get_peptides_ofmass(pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2);
+	 for (string *peptide : *peptides) {
+		 cout << *peptide << endl;
+	 }
 
          // Grab all peptides of mass pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1
 
