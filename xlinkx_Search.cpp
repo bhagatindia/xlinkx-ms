@@ -47,18 +47,25 @@ void xlinkx_Search::SearchForPeptides(const char *protein_file, enzyme_cut_param
                pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1,
                pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2);
 
-	 cout << "Retrieving peptides of mass " << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 << 
-		" and " << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 << endl;
 
-	 vector<string*> *peptides = phdp->phd_get_peptides_ofmass(pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1);
-	 for (string *peptide : *peptides) {
-		 cout << *peptide << endl;
-	 }
+         cout << "Retrieving peptides of mass " << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 << 
+            " and " << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 << endl;
 
-	 peptides = phdp->phd_get_peptides_ofmass(pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2);
-	 for (string *peptide : *peptides) {
-		 cout << *peptide << endl;
-	 }
+         vector<string*> *peptides = phdp->phd_get_peptides_ofmass(pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1);
+         for (string *peptide : *peptides) {
+            cout << *peptide << endl;
+         }
+
+         peptides = phdp->phd_get_peptides_ofmass(pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2);
+         for (string *peptide : *peptides) {
+
+            char *szPeptide = new char[(*peptide).length() + 1];
+            strcpy(szPeptide, (*peptide).c_str() );
+
+            double dXcorr = XcorrScore(szPeptide, pvSpectrumList.at(i).iScanNumber);
+
+            cout << *peptide << "  xcorr " << dXcorr << endl;
+         }
 
          // Grab all peptides of mass pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1
 
@@ -76,8 +83,59 @@ void xlinkx_Search::SearchForPeptides(const char *protein_file, enzyme_cut_param
 
          XcorrScore(szPep1, szPep2, 
 */
+
       }
    }
+}
+
+
+double xlinkx_Search::XcorrScore(char *szPeptide,
+                                 int iScanNumber)
+{
+
+   int iWhichQuery;
+   int iLenPeptide = strlen(szPeptide);
+   double dXcorr = 0.0;
+
+   // find which
+   for (iWhichQuery=0; iWhichQuery<(int)g_pvQuery.size(); iWhichQuery++)
+   {
+      if (g_pvQuery.at(iWhichQuery)->_spectrumInfoInternal.iScanNumber == iScanNumber)
+         break;
+   }
+
+   if (iWhichQuery < (int)g_pvQuery.size())
+   {
+      int bin, x, y;
+      int iMax = g_pvQuery.at(iWhichQuery)->_spectrumInfoInternal.iArraySize/SPARSE_MATRIX_SIZE + 1;
+
+      double dBion = g_staticParams.precalcMasses.dNtermProton;
+      double dYion = g_staticParams.precalcMasses.dCtermOH2Proton;
+
+      for (int i=0; i<iLenPeptide; i++) // will ignore multiple fragment ion charge states for now
+      {
+         dBion += g_staticParams.massUtility.pdAAMassFragment[(int)szPeptide[i]];
+
+         bin = BIN(dBion);
+         x =  bin / SPARSE_MATRIX_SIZE;
+         if (g_pvQuery.at(iWhichQuery)->ppfSparseFastXcorrData[x]==NULL || x>iMax) // x should never be > iMax so this is just a safety check
+            continue;
+         y = bin - (x*SPARSE_MATRIX_SIZE);
+         dXcorr += g_pvQuery.at(iWhichQuery)->ppfSparseFastXcorrData[x][y];
+
+
+         dYion += g_staticParams.massUtility.pdAAMassFragment[(int)szPeptide[iLenPeptide -1 - i]];
+
+         bin = BIN(dYion);
+         x =  bin / SPARSE_MATRIX_SIZE;
+         if (g_pvQuery.at(iWhichQuery)->ppfSparseFastXcorrData[x]==NULL || x>iMax) // x should never be > iMax so this is just a safety check
+            continue;
+         y = bin - (x*SPARSE_MATRIX_SIZE);
+         dXcorr += g_pvQuery.at(iWhichQuery)->ppfSparseFastXcorrData[x][y];
+      }
+   }
+
+   return dXcorr;
 }
 
 

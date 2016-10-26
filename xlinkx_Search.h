@@ -34,6 +34,9 @@ public:
 
 private:
 
+   static double XcorrScore(char *szPeptide,
+                     int iScanNumber);
+
    // Private static methods
 
    // Private member variables
