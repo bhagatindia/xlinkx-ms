@@ -19,7 +19,7 @@ xlinkx.exe: $(OBJS)
 	git submodule init; git submodule update
 	cd $(MSTOOLKIT) ; make lite 
 	cd $(HASH) ; make; 
-	cd $(PROTOBUF) ; ./autogen.sh ; ./configure ; make ; make check
+	cd $(PROTOBUF) ; git apply ../buf_limit_increase.diff ; ./autogen.sh ; ./configure ; make ; make check
 	cp hash/xlinkx-hash .
 	${CXX} $(CXXFLAGS) $(OBJS) $(LIBPATHS) $(LIBS) -o ${EXECNAME}
 
