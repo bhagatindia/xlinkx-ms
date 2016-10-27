@@ -1,6 +1,7 @@
 CXX = g++
 MSTOOLKIT = mstoolkit
 HASH = hash
+PROTOBUF = protobuf
 override CXXFLAGS +=  -g  -std=c++11 -Wall -Wextra -static -Wno-char-subscripts -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D__LINUX__ -I$(MSTOOLKIT)/include
 EXECNAME = xlinkx.exe
 OBJS = xlinkx.o xlinkx_Preprocess.o xlinkx_Search.o xlinkx_MassSpecUtils.o 
@@ -18,6 +19,7 @@ xlinkx.exe: $(OBJS)
 	git submodule init; git submodule update
 	cd $(MSTOOLKIT) ; make lite 
 	cd $(HASH) ; make; 
+	cd $(PROTOBUF) ; ./autogen.sh ; ./configure ; make ; make check
 	cp hash/xlinkx-hash .
 	${CXX} $(CXXFLAGS) $(OBJS) $(LIBPATHS) $(LIBS) -o ${EXECNAME}
 
