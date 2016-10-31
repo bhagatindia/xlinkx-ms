@@ -7,7 +7,7 @@ EXECNAME = xlinkx.exe
 OBJS = xlinkx.o xlinkx_Preprocess.o xlinkx_Search.o xlinkx_MassSpecUtils.o 
 DEPS = xlinkx.h Common.h xlinkx_Data.h xlinkx_DataInternal.h xlinkx_Preprocess.h xlinkx_MassSpecUtils.h
 
-LIBPATHS = -L$(MSTOOLKIT)
+LIBPATHS = -L$(MSTOOLKIT) -L$(PROTOBUF)/.libs
 LIBS = -lmstoolkitlite -lm -pthread -static xlinkx-hash -lprotobuf 
 ifdef MSYSTEM
    LIBS += -lws2_32
