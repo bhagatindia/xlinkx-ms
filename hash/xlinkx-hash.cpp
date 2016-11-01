@@ -170,7 +170,7 @@ void phd_basic_cut_pre_post(enzyme_cut_params params, const string protein_seq,
    //cout << "We got the basic peptides based on the pre and post conditions" << endl;
 
    for (range *r: splits) {
-      //cout << "Range: Start is " << r->start << " and length is " << r->length << endl;
+      cout << "Range: Start is " << r->start << " and length is " << r->length << " " << protein_seq.substr(r->start, r->length) << endl;
    }
 
 }
@@ -210,13 +210,13 @@ void phd_handle_post_merge(enzyme_cut_params params, const string protein_seq,
    //cout << "No cut splits" << endl;
 
    for (range *r: nocut_splits) {
-      //cout << "Range: Start is " << r->start << " and length is " << r->length << endl;
+      cout << "Range: Start is " << r->start << " and length is " << r->length << " " << protein_seq.substr(r->start, r->length) << endl;
    }
 
 }
 
 void phd_handle_missed_cleavage(enzyme_cut_params params, const string protein_seq,
-                                 vector<range *> &nocut_splits)
+                                 vector<range *> &nocut_splits, vector<range *> &final_splits)
 {
    // We have to handle missing cleavage
    int missed_cleavage = params.missed_cleavage;
@@ -233,18 +233,31 @@ void phd_handle_missed_cleavage(enzyme_cut_params params, const string protein_s
             r_new->length = r->length + r_next->length;
             r_new->missed = r->length;
             r_new->left = r_new->right = 0;
-            nocut_splits.push_back(r_new);
+            final_splits.push_back(r_new);
          }
+      }
+      // Add the last one to the final splits
+      range *r = nocut_splits.at(num_cuts - 1);
+      range *r_new = new range;
+      r_new->start = r->start;
+      r_new->length = r->length;
+      r_new->missed = r_new->left = r_new->right = 0;
+      final_splits.push_back(r_new);
+   } else {
+      for (range *r : nocut_splits) {
+	 range *r_new = new range;
+	 r_new->start = r->start;
+	 r_new->length = r->length;
+	 r_new->missed = r_new->left = r_new->right = 0;
+	 final_splits.push_back(r_new);
       }
    }
 
-   /*
-   for (range *r: nocut_splits) {
+   for (range *r: final_splits) {
       cout << "Range: Start is " << r->start << " and length is " << r->length << 
                " and missed cleavage " << r->missed << " Left is " << r->left << 
-               " Right is " << r->right << endl;
+               " Right is " << r->right << " and the peptide is " << protein_seq.substr(r->start, r->length) << endl;
    }
-   */
 
 }
 
@@ -348,25 +361,23 @@ void phd_split_protein_sequence_peptides(enzyme_cut_params params,
 {
    //FIXME: Clean up memory. There are memory leaks
    const string protein_seq = pro_seq.phdpro_pepseq();
-   vector<range *> splits, nocut_splits;
+   vector<range *> splits, nocut_splits, final_splits;
 
    phd_basic_cut_pre_post(params, protein_seq, splits);
 
    phd_handle_post_merge(params, protein_seq, splits, nocut_splits);
 
-   phd_handle_missed_cleavage(params, protein_seq, nocut_splits);
+   phd_handle_missed_cleavage(params, protein_seq, nocut_splits, final_splits);
 
-   phd_handle_semi_tryptic(params, protein_seq, nocut_splits);
+   phd_handle_semi_tryptic(params, protein_seq, final_splits);
 
-   for (range *r: nocut_splits) {
+   for (range *r: final_splits) {
       string peptide = protein_seq.substr(r->start, r->length);
       int mass = phd_calculate_mass_peptide(peptide);
-      /*
       cout << "Range: Start is " << r->start << " and length is " << r->length << 
                " and missed cleavage " << r->missed << " Left is " << r->left << 
                " Right is " << r->right << " and the peptide is " << peptide << 
                " and its mass is " << mass << endl;
-      */
       if (mass < MAX_FRAGMENT_MASS) {
          phd_add_peptide_into_hash(r, peptide, pro_seq, pfile.mutable_phdpepm(mass));
       }
@@ -377,6 +388,9 @@ void phd_split_protein_sequence_peptides(enzyme_cut_params params,
 
    // Clean up nocut splits
    for (range *r: nocut_splits) delete r;
+
+   // Clean up final splits
+   for (range *r: final_splits) delete r;
 }
 
 void phd_add_peptide_hash_database (peptide_hash_database::phd_file &pfile, 

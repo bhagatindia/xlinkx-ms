@@ -100,7 +100,7 @@ int main(int argc, char **argv)
    params.semi_tryptic = 0;
    params.precut_amino = "-";
    params.prenocut_amino = "-";
-   params.missed_cleavage = 0;
+   params.missed_cleavage = 1;
    params.postcut_amino = "KR";
    params.postnocut_amino = "P";
 

@@ -24,3 +24,6 @@ Using xlinkx-hash is illustrated in phd_main
 Building phd_main: make phd-main
 
 ./phd-main protein_sequence_database.txt 1 - K - P 1 phd.txt
+./phd-main protein_sequence_database.txt 0 - KR - P 1 phd.txt
+
+TODO: Fix memory leaks
