@@ -108,10 +108,10 @@ double xlinkx_Search::XcorrScore(char *szPeptide,
       for (int i=0; i<iLenPeptide; i++) // will ignore multiple fragment ion charge states for now
       {
          dBion += g_staticParams.massUtility.pdAAMassFragment[(int)szPeptide[i]];
-         if (szPeptide[i] == 'K' && dBionLysine==false)
+         if (szPeptide[i] == 'K' && bBionLysine==false)
          {
             dBion += 325.12918305;
-            dBionLysine = true;
+            bBionLysine = true;
          }
 
          bin = BIN(dBion);
@@ -123,10 +123,10 @@ double xlinkx_Search::XcorrScore(char *szPeptide,
 
 
          dYion += g_staticParams.massUtility.pdAAMassFragment[(int)szPeptide[iLenPeptide -1 - i]];
-         if (szPeptide[iLenPeptide -1 - i] == 'K' && dYionLysine==false)
+         if (szPeptide[iLenPeptide -1 - i] == 'K' && bYionLysine==false)
          {
             dYion += 325.12918305;
-            dYionLysine = true;
+            bYionLysine = true;
          }
 
          bin = BIN(dYion);
@@ -136,15 +136,15 @@ double xlinkx_Search::XcorrScore(char *szPeptide,
          y = bin - (x*SPARSE_MATRIX_SIZE);
          dXcorr += g_pvQuery.at(iWhichQuery)->ppfSparseFastXcorrData[x][y];
       }
-   }
 
-   if (bBionLysine == false || bYionLysine == false) // sanity check
-   {
-      cout << " Error, no internal lysine: " << szPeptide << endl;
-      exit(1);
-   }
+      if (bBionLysine == false || bYionLysine == false) // sanity check
+      {
+         cout << " Error, no internal lysine: " << szPeptide << endl;
+         exit(1);
+      }
 
-   dXcorr *= 0.005;
+      dXcorr *= 0.005;
+   }
 
    return dXcorr;
 }
