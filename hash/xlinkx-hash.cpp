@@ -33,32 +33,33 @@ vector<string*>* protein_hash_db_::phd_get_peptides_ofmass(int mass)
 
 #define MAX_EDGES 30
 
-int pp_amino_acid_mass[MAX_EDGES] = {  71, //A 
-               99, //B not there
-               103, //C
-               115, //D
-               129, //E
-               147, //F
-               57, //G
-               137, //H
-               113, //I
-               99, //J
-               128, //K
-               113, //L
-               131, //M
-               114, //N
-               132, //O
-               97, //P
-               128, //Q
-               156, //R
-               87, //S
-               101, //T
-               99, //U
-               99, //V
-               186, //W
-               99, //X
-               163, //Y
-               99 //Z 
+float pp_amino_acid_mass[MAX_EDGES] = {  
+               71.0779, //A 
+               0, //B not there
+               103.1429, //C
+               115.0874, //D
+               129.1139, //E
+               147.1738, //F
+               57.0513, //G
+               137.1392, //H
+               113.1576, //I
+               0, //J
+               128.1722, //K
+               113.1576, //L
+               131.1960, //M
+               114.1026, //N
+               132.1609, //O
+               97.1151, //P
+               128.1292, //Q
+               156.1856, //R
+               87.0773, //S
+               101.1038, //T
+               0, //U
+               99.1310, //V
+               186.2099, //W
+               0, //X
+               163.1732, //Y
+               0 //Z 
             };
 
 void phd_split_string(std::string str, std::string splitBy, std::vector<std::string>& tokens)
@@ -337,7 +338,7 @@ void phd_handle_semi_tryptic(enzyme_cut_params params, const string protein_seq,
 
 int phd_calculate_mass_peptide(const string peptide)
 {
-   int mass = 0;
+   float mass = 0;
    for (const char &c : peptide) {
       mass += pp_amino_acid_mass[c - 'A'];
    }
