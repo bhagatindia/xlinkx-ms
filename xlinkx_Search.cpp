@@ -52,38 +52,28 @@ void xlinkx_Search::SearchForPeptides(const char *protein_file, enzyme_cut_param
             " and " << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 << endl;
 
          vector<string*> *peptides = phdp->phd_get_peptides_ofmass(pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1);
-         for (string *peptide : *peptides) {
-            cout << *peptide << endl;
-         }
-
-         peptides = phdp->phd_get_peptides_ofmass(pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2);
-         for (string *peptide : *peptides) {
+         for (string *peptide : *peptides)
+         {
 
             char *szPeptide = new char[(*peptide).length() + 1];
             strcpy(szPeptide, (*peptide).c_str() );
 
             double dXcorr = XcorrScore(szPeptide, pvSpectrumList.at(i).iScanNumber);
 
-            cout << *peptide << "  xcorr " << dXcorr << endl;
+            cout << "pep1: " << *peptide << "  xcorr " << dXcorr << endl;
          }
 
-         // Grab all peptides of mass pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1
+         peptides = phdp->phd_get_peptides_ofmass(pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2);
+         for (string *peptide : *peptides)
+         {
 
-         // Grab all peptides of mass pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2
+            char *szPeptide = new char[(*peptide).length() + 1];
+            strcpy(szPeptide, (*peptide).c_str() );
 
-         // Now loop through both sets of peptides, analyzing combinations of each
-         // - account for the modification on internal lysing residue
-         // - calculate fragments
-         // - generate xcorr score
-         
+            double dXcorr = XcorrScore(szPeptide, pvSpectrumList.at(i).iScanNumber);
 
-/*
-         strcpy(szPep1, "DLRSKTDAAQISK");
-         strcpy(szPep2, "IGSEKTADLK");
-
-         XcorrScore(szPep1, szPep2, 
-*/
-
+            cout << "pep2: " << *peptide << "  xcorr " << dXcorr << endl;
+         }
       }
    }
 }
@@ -112,9 +102,17 @@ double xlinkx_Search::XcorrScore(char *szPeptide,
       double dBion = g_staticParams.precalcMasses.dNtermProton;
       double dYion = g_staticParams.precalcMasses.dCtermOH2Proton;
 
+      bool bBionLysine = false; // set to true after first b-ion lysine is modified
+      bool bYionLysine = false; // set to true after first y-ion lysine is modified
+
       for (int i=0; i<iLenPeptide; i++) // will ignore multiple fragment ion charge states for now
       {
          dBion += g_staticParams.massUtility.pdAAMassFragment[(int)szPeptide[i]];
+         if (szPeptide[i] == 'K' && bBionLysine==false)
+         {
+            dBion += 325.12918305;
+            bBionLysine = true;
+         }
 
          bin = BIN(dBion);
          x =  bin / SPARSE_MATRIX_SIZE;
@@ -125,6 +123,11 @@ double xlinkx_Search::XcorrScore(char *szPeptide,
 
 
          dYion += g_staticParams.massUtility.pdAAMassFragment[(int)szPeptide[iLenPeptide -1 - i]];
+         if (szPeptide[iLenPeptide -1 - i] == 'K' && bYionLysine==false)
+         {
+            dYion += 325.12918305;
+            bYionLysine = true;
+         }
 
          bin = BIN(dYion);
          x =  bin / SPARSE_MATRIX_SIZE;
@@ -133,6 +136,14 @@ double xlinkx_Search::XcorrScore(char *szPeptide,
          y = bin - (x*SPARSE_MATRIX_SIZE);
          dXcorr += g_pvQuery.at(iWhichQuery)->ppfSparseFastXcorrData[x][y];
       }
+
+      if (bBionLysine == false || bYionLysine == false) // sanity check
+      {
+         cout << " Error, no internal lysine: " << szPeptide << endl;
+         exit(1);
+      }
+
+      dXcorr *= 0.005;
    }
 
    return dXcorr;
