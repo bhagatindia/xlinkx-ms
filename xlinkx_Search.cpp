@@ -108,7 +108,7 @@ double xlinkx_Search::XcorrScore(char *szPeptide,
       for (int i=0; i<iLenPeptide; i++) // will ignore multiple fragment ion charge states for now
       {
          dBion += g_staticParams.massUtility.pdAAMassFragment[(int)szPeptide[i]];
-         if (szPeptide[i] == 'K' && bBionLysine==false)
+         if (szPeptide[i] == 'K' && !bBionLysine)
          {
             dBion += 325.12918305;
             bBionLysine = true;
@@ -123,7 +123,7 @@ double xlinkx_Search::XcorrScore(char *szPeptide,
 
 
          dYion += g_staticParams.massUtility.pdAAMassFragment[(int)szPeptide[iLenPeptide -1 - i]];
-         if (szPeptide[iLenPeptide -1 - i] == 'K' && bYionLysine==false)
+         if (szPeptide[iLenPeptide -1 - i] == 'K' && !bYionLysine)
          {
             dYion += 325.12918305;
             bYionLysine = true;
@@ -137,7 +137,7 @@ double xlinkx_Search::XcorrScore(char *szPeptide,
          dXcorr += g_pvQuery.at(iWhichQuery)->ppfSparseFastXcorrData[x][y];
       }
 
-      if (bBionLysine == false || bYionLysine == false) // sanity check
+      if (!bBionLysine && !bYionLysine) // sanity check
       {
          cout << " Error, no internal lysine: " << szPeptide << endl;
          exit(1);
