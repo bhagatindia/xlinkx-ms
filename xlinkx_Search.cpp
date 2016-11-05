@@ -23,17 +23,51 @@
 xlinkx_Search::xlinkx_Search()
 {
 }
-
+#define NUMPEPTIDES 10
 
 xlinkx_Search::~xlinkx_Search()
 {
 }
 
+void insert_pep_pq(char *pepArray[], float xcorrArray[], char *ins_pep, float ins_xcorr)
+{
+   int i; 
+
+   // check for duplicates
+   for (i = 0; i< NUMPEPTIDES - 1; i++) {
+      if (pepArray[i] != NULL) {
+         if (!strcmp(pepArray[i], ins_pep)) return;
+      }
+   }
+
+   // Insert first into the array
+   if (xcorrArray[NUMPEPTIDES - 1] < ins_xcorr) {
+      xcorrArray[NUMPEPTIDES - 1] = ins_xcorr;
+      pepArray[NUMPEPTIDES - 1] = ins_pep;
+   } else return;
+
+   // shiffle
+   for (i = NUMPEPTIDES - 1; i > 0; i--) {
+      if (xcorrArray[i] > xcorrArray[i-1]) {
+         // Swap
+         float temp = xcorrArray[i];
+         char *temp_pep = pepArray[i];
+         xcorrArray[i] = xcorrArray[i-1]; pepArray[i] = pepArray[i-1];
+         xcorrArray[i-1] = temp; pepArray[i-1] = temp_pep;
+      } else break;
+   }
+}
 
 void xlinkx_Search::SearchForPeptides(const char *protein_file, enzyme_cut_params params, const char *pep_hash_file)
 {
    int i;
    int ii;
+
+   #define LYSINE_RESIDUE 325.1291
+
+   char *toppep1[NUMPEPTIDES], *toppep2[NUMPEPTIDES];
+   float xcorrPep1[NUMPEPTIDES], xcorrPep2[NUMPEPTIDES];
+
 
    // If PeptideHash not present, generate it now; otherwise open the hash file.
    protein_hash_db_t phdp = phd_retrieve_hash_db(protein_file, params, pep_hash_file);
@@ -43,6 +77,11 @@ void xlinkx_Search::SearchForPeptides(const char *protein_file, enzyme_cut_param
       for (ii=0; ii<(int)pvSpectrumList.at(i).pvdPrecursors.size(); ii++)
       {
 
+         for (int li = 0; li < NUMPEPTIDES; li++) {
+            xcorrPep1[li] = xcorrPep2[li] = -99999;
+            toppep1[li] = toppep2[li] = NULL;
+         }
+
          printf("scan %d, %f, %f\n", pvSpectrumList.at(i).iScanNumber,
                pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1,
                pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2);
@@ -51,7 +90,13 @@ void xlinkx_Search::SearchForPeptides(const char *protein_file, enzyme_cut_param
          cout << "Retrieving peptides of mass " << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 << 
             " and " << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 << endl;
 
-         vector<string*> *peptides = phdp->phd_get_peptides_ofmass(pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1);
+         float pep_mass1 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 - LYSINE_RESIDUE;
+         cout << "After Lysine residue reduction the peptide of mass " << pep_mass1 << " are being extracted" << endl;
+         if (pep_mass1 <= 0) {
+            cout << "Peptide mass is coming out to be zero after removing Lysine resideu" << endl;
+            exit(1);
+         }
+         vector<string*> *peptides = phdp->phd_get_peptides_ofmass(pep_mass1);
          for (string *peptide : *peptides)
          {
 
@@ -61,9 +106,20 @@ void xlinkx_Search::SearchForPeptides(const char *protein_file, enzyme_cut_param
             double dXcorr = XcorrScore(szPeptide, pvSpectrumList.at(i).iScanNumber);
 
             cout << "pep1: " << *peptide << "  xcorr " << dXcorr << endl;
+            insert_pep_pq(toppep1, xcorrPep1, szPeptide, dXcorr);
          }
 
-         peptides = phdp->phd_get_peptides_ofmass(pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2);
+         cout << "Top "<< NUMPEPTIDES << " pep1 peptides for this scan are " << endl;
+
+         for (int li = 0 ; li < NUMPEPTIDES; li++) cout << "pep1_top: " << ((toppep1[li] != NULL)? toppep1[li]: "") << " xcorr " << xcorrPep1[li] << endl;
+
+         float pep_mass2 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 - LYSINE_RESIDUE;
+         cout << "After Lysine residue reduction the peptide of mass " << pep_mass2 << " are being extracted" << endl;
+         if (pep_mass2 <= 0) {
+            cout << "Peptide mass is coming out to be less than or equal to zero after removing lysine residue" << endl;
+            exit(1);
+         }
+         peptides = phdp->phd_get_peptides_ofmass(pep_mass2);
          for (string *peptide : *peptides)
          {
 
@@ -73,7 +129,12 @@ void xlinkx_Search::SearchForPeptides(const char *protein_file, enzyme_cut_param
             double dXcorr = XcorrScore(szPeptide, pvSpectrumList.at(i).iScanNumber);
 
             cout << "pep2: " << *peptide << "  xcorr " << dXcorr << endl;
+            insert_pep_pq(toppep2, xcorrPep2, szPeptide, dXcorr);
          }
+
+         cout << "Top "<< NUMPEPTIDES << " pep2 peptides for this scan are " << endl;
+
+         for (int li = 0; li < NUMPEPTIDES; li++) cout << "pep2_top: " << (toppep2[li] != NULL? toppep2[li] : "") << " xcorr " << xcorrPep2[li] << endl;
       }
    }
 }

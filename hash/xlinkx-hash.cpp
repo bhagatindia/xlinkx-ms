@@ -18,6 +18,7 @@ vector<string*>* protein_hash_db_::phd_get_peptides_ofmass(int mass)
    // another memory leak
    vector<string*> *ret = new vector<string*>;
 
+   cout << "Retriving peptides of mass " << mass << endl;
    peptide_hash_database::phd_peptide_mass pepm = phd_file_entry.phdpepm(mass);
    if (pepm.phdpmass_mass() == mass) {
       for (int i = 0; i < pepm.phdpmass_peptide_list_size(); i++) {
