@@ -63,7 +63,7 @@ void xlinkx_Search::SearchForPeptides(const char *protein_file, enzyme_cut_param
    int i;
    int ii;
 
-   #define LYSINE_RESIDUE 325.1291
+   #define LYSINE_RESIDUE 197.0324
    #define C_N_TERMINUS 18
 
    char *toppep1[NUMPEPTIDES], *toppep2[NUMPEPTIDES];

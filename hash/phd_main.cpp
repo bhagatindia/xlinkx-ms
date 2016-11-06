@@ -69,9 +69,8 @@ int main(int argc, char *argv[])
    
    //retrieving peptides of mass 256
    int mass;
-   while(1) {
-      cout << "Retrieving peptides of mass " << endl;
-      cin >> mass;
+   for (int mass = 0; mass < 6000; mass++) {
+      cout << "Retrieving peptides of mass " << mass << endl;
       vector<string*> *peptides = phdp->phd_get_peptides_ofmass(mass);
       for (string *peptide : *peptides) {
          cout << *peptide << endl;
