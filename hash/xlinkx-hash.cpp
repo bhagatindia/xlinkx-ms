@@ -37,7 +37,7 @@ vector<string*>* protein_hash_db_::phd_get_peptides_ofmass(int mass)
 float pp_amino_acid_mass[MAX_EDGES] = {  
                71.0779, //A 
                0, //B not there
-               103.1429, //C
+               160.1643, //103.1429 + 57.0214, //C
                115.0874, //D
                129.1139, //E
                147.1738, //F
