@@ -64,6 +64,7 @@ void xlinkx_Search::SearchForPeptides(const char *protein_file, enzyme_cut_param
    int ii;
 
    #define LYSINE_RESIDUE 325.1291
+   #define C_N_TERMINUS 18
 
    char *toppep1[NUMPEPTIDES], *toppep2[NUMPEPTIDES];
    float xcorrPep1[NUMPEPTIDES], xcorrPep2[NUMPEPTIDES];
@@ -90,7 +91,7 @@ void xlinkx_Search::SearchForPeptides(const char *protein_file, enzyme_cut_param
          cout << "Retrieving peptides of mass " << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 << 
             " and " << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 << endl;
 
-         float pep_mass1 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 - LYSINE_RESIDUE;
+         float pep_mass1 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 - LYSINE_RESIDUE - C_N_TERMINUS;
          cout << "After Lysine residue reduction the peptide of mass " << pep_mass1 << " are being extracted" << endl;
          if (pep_mass1 <= 0) {
             cout << "Peptide mass is coming out to be zero after removing Lysine resideu" << endl;
@@ -113,7 +114,7 @@ void xlinkx_Search::SearchForPeptides(const char *protein_file, enzyme_cut_param
 
          for (int li = 0 ; li < NUMPEPTIDES; li++) cout << "pep1_top: " << ((toppep1[li] != NULL)? toppep1[li]: "") << " xcorr " << xcorrPep1[li] << endl;
 
-         float pep_mass2 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 - LYSINE_RESIDUE;
+         float pep_mass2 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 - LYSINE_RESIDUE - C_N_TERMINUS;
          cout << "After Lysine residue reduction the peptide of mass " << pep_mass2 << " are being extracted" << endl;
          if (pep_mass2 <= 0) {
             cout << "Peptide mass is coming out to be less than or equal to zero after removing lysine residue" << endl;
