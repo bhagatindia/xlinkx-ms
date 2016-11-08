@@ -35,31 +35,31 @@ vector<string*>* protein_hash_db_::phd_get_peptides_ofmass(int mass)
 #define MAX_EDGES 30
 
 float pp_amino_acid_mass[MAX_EDGES] = {  
-               71.0779, //A 
+               71.037113805, //A 
                0, //B not there
-               160.1643, //103.1429 + 57.0214, //C
-               115.0874, //D
-               129.1139, //E
-               147.1738, //F
-               57.0513, //G
-               137.1392, //H
-               113.1576, //I
+               160.03064805, //103.009184505 + 57.021464, //C
+               115.026943065, //D
+               129.042593135, //E
+               147.068413945, //F
+               57.021463735, //G
+               137.058911875, //H
+               113.084064015, //I
                0, //J
-               128.1722, //K
-               113.1576, //L
-               131.1960, //M
-               114.1026, //N
-               132.1609, //O
-               97.1151, //P
-               128.1292, //Q
-               156.1856, //R
-               87.0773, //S
-               101.1038, //T
-               0, //U
-               99.1310, //V
-               186.2099, //W
+               128.094963050, //K
+               113.084064015, //L
+               131.040484645, //M
+               114.042927470, //N
+               132.089877680, //O
+               97.052763875, //P
+               128.058577540, //Q
+               156.101111050, //R
+               87.032028435, //S
+               101.047678505, //T
+               150.95363, //U
+               99.068413945, //V
+               186.079312980, //W
                0, //X
-               163.1732, //Y
+               163.063328575, //Y
                0 //Z 
             };
 
@@ -405,16 +405,23 @@ void phd_add_peptide_hash_database (peptide_hash_database::phd_file &pfile,
                                     enzyme_cut_params cut_params)
 {
    const peptide_hash_database::phd_header hdr = pfile.phdhdr();
+   char szTmp[24];
 
    for (int i = 0; i < MAX_FRAGMENT_MASS; i++) {
       peptide_hash_database::phd_peptide_mass *pepm = pfile.add_phdpepm();
       pepm->set_phdpmass_mass(i);
    }
 
+   cout << "Splitting peptides for protein id: ";
    for (int i = 0; i < pfile.phdpro_size(); i++) {
-      cout << "Splitting peptides for protein id : " << i << endl;
+      sprintf(szTmp, "%d", i);
+      cout << szTmp;
+      cout.flush();
+      for (int ii=0; ii<strlen(szTmp);ii++)
+         cout << '\b';
       phd_split_protein_sequence_peptides(cut_params, pfile.phdpro(i), pfile);
    }
+   cout << endl;
 
    // If the parameter is semi-tryptic, add all left and right semi-tryptic peptides
 }
