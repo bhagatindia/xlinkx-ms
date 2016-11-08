@@ -62,13 +62,13 @@ void xlinkx_Search::SearchForPeptides(const char *protein_file, enzyme_cut_param
 {
    int i;
    int ii;
+   double dTolerance;
+   double dPPM = 20.0;  // use 20ppm tolerance for now
 
-   #define LYSINE_RESIDUE 197.0324
-   #define C_N_TERMINUS 18
+#define LYSINE_MOD 197.0324
 
    char *toppep1[NUMPEPTIDES], *toppep2[NUMPEPTIDES];
    float xcorrPep1[NUMPEPTIDES], xcorrPep2[NUMPEPTIDES];
-
 
    // If PeptideHash not present, generate it now; otherwise open the hash file.
    protein_hash_db_t phdp = phd_retrieve_hash_db(protein_file, params, pep_hash_file);
@@ -87,20 +87,20 @@ void xlinkx_Search::SearchForPeptides(const char *protein_file, enzyme_cut_param
                pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1,
                pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2);
 
-
          cout << "Retrieving peptides of mass " << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 << 
             " and " << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 << endl;
 
-         float pep_mass1 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 - LYSINE_RESIDUE - C_N_TERMINUS;
+         double pep_mass1 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 - LYSINE_MOD - g_staticParams.precalcMasses.dOH2;
          cout << "After Lysine residue reduction the peptide of mass " << pep_mass1 << " are being extracted" << endl;
          if (pep_mass1 <= 0) {
             cout << "Peptide mass is coming out to be zero after removing Lysine resideu" << endl;
             exit(1);
          }
+
+         dTolerance = (dPPM * pep_mass1) / 1e6;
          vector<string*> *peptides = phdp->phd_get_peptides_ofmass(pep_mass1);
          for (string *peptide : *peptides)
          {
-
             char *szPeptide = new char[(*peptide).length() + 1];
             strcpy(szPeptide, (*peptide).c_str() );
 
@@ -114,7 +114,7 @@ void xlinkx_Search::SearchForPeptides(const char *protein_file, enzyme_cut_param
 
          for (int li = 0 ; li < NUMPEPTIDES; li++) cout << "pep1_top: " << ((toppep1[li] != NULL)? toppep1[li]: "") << " xcorr " << xcorrPep1[li] << endl;
 
-         float pep_mass2 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 - LYSINE_RESIDUE - C_N_TERMINUS;
+         double pep_mass2 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 - LYSINE_MOD - g_staticParams.precalcMasses.dOH2;
          cout << "After Lysine residue reduction the peptide of mass " << pep_mass2 << " are being extracted" << endl;
          if (pep_mass2 <= 0) {
             cout << "Peptide mass is coming out to be less than or equal to zero after removing lysine residue" << endl;
@@ -167,12 +167,12 @@ double xlinkx_Search::XcorrScore(char *szPeptide,
       bool bBionLysine = false; // set to true after first b-ion lysine is modified
       bool bYionLysine = false; // set to true after first y-ion lysine is modified
 
-      for (int i=0; i<iLenPeptide; i++) // will ignore multiple fragment ion charge states for now
+      for (int i=0; i<iLenPeptide-1; i++) // will ignore multiple fragment ion charge states for now
       {
          dBion += g_staticParams.massUtility.pdAAMassFragment[(int)szPeptide[i]];
          if (szPeptide[i] == 'K' && !bBionLysine)
          {
-            dBion += 325.12918305;
+            dBion += LYSINE_MOD;
             bBionLysine = true;
          }
 
@@ -187,7 +187,7 @@ double xlinkx_Search::XcorrScore(char *szPeptide,
          dYion += g_staticParams.massUtility.pdAAMassFragment[(int)szPeptide[iLenPeptide -1 - i]];
          if (szPeptide[iLenPeptide -1 - i] == 'K' && !bYionLysine)
          {
-            dYion += 325.12918305;
+            dYion += LYSINE_MOD;
             bYionLysine = true;
          }
 

@@ -256,6 +256,7 @@ struct PrecalcMasses
    double dNtermProton;          // dAddNterminusPeptide + PROTON_MASS
    double dCtermOH2Proton;       // dAddCterminusPeptide + dOH2fragment + PROTON_MASS
    double dOH2ProtonCtermNterm;  // dOH2parent + PROTON_MASS + dAddCterminusPeptide + dAddNterminusPeptide
+   double dOH2;                  // mass of OH2
    int iMinus17;                 // BIN'd value of mass(NH3)
    int iMinus18;                 // BIN'd value of mass(H2O)
 
@@ -264,6 +265,7 @@ struct PrecalcMasses
       dNtermProton = a.dNtermProton;
       dCtermOH2Proton = a.dCtermOH2Proton;
       dOH2ProtonCtermNterm = a.dOH2ProtonCtermNterm;
+      dOH2 = a.dOH2 ;
       iMinus17 = a.iMinus17;
       iMinus18 = a.iMinus18;
 

@@ -88,6 +88,25 @@ int main(int argc, char **argv)
       + g_staticParams.staticModifications.dAddCterminusPeptide
       + g_staticParams.staticModifications.dAddNterminusPeptide;
 
+   g_staticParams.precalcMasses.dOH2 = g_staticParams.massUtility.dOH2parent
+      + g_staticParams.staticModifications.dAddCterminusPeptide
+      + g_staticParams.staticModifications.dAddNterminusPeptide;;
+
+   // add static mods
+   for (int i=65; i<=90; i++)  // 65-90 represents upper case letters in ASCII
+   {
+      if (!isEqual(g_staticParams.staticModifications.pdStaticMods[i], 0.0))
+      {
+         g_staticParams.massUtility.pdAAMassParent[i] += g_staticParams.staticModifications.pdStaticMods[i];
+         g_staticParams.massUtility.pdAAMassFragment[i] += g_staticParams.staticModifications.pdStaticMods[i];
+      }
+      else if (i=='B' || i=='J' || i=='X' || i=='Z')
+      {
+         g_staticParams.massUtility.pdAAMassParent[i] = 999999.;
+         g_staticParams.massUtility.pdAAMassFragment[i] = 999999.;
+      }
+   }
+
    strcpy(g_staticParams.enzymeInformation.szSearchEnzymeName, "trypsin");
    strcpy(g_staticParams.enzymeInformation.szSearchEnzymeBreakAA, "KR");
    strcpy(g_staticParams.enzymeInformation.szSearchEnzymeNoBreakAA, "P");
