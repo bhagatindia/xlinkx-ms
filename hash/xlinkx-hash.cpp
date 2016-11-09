@@ -18,7 +18,7 @@ vector<string*>* protein_hash_db_::phd_get_peptides_ofmass(int mass)
    // another memory leak
    vector<string*> *ret = new vector<string*>;
 
-   cout << "Retriving peptides of mass " << mass << endl;
+   cout << "Retrieving peptides of mass " << mass << endl;
    peptide_hash_database::phd_peptide_mass pepm = phd_file_entry.phdpepm(mass);
    if (pepm.phdpmass_mass() == mass) {
       for (int i = 0; i < pepm.phdpmass_peptide_list_size(); i++) {
@@ -36,7 +36,7 @@ vector<string*>* protein_hash_db_::phd_get_peptides_ofmass(int mass)
 
 float pp_amino_acid_mass[MAX_EDGES] = {  
                71.037113805, //A 
-               0, //B not there
+               99999, //B not there
                160.03064805, //103.009184505 + 57.021464, //C
                115.026943065, //D
                129.042593135, //E
@@ -44,7 +44,7 @@ float pp_amino_acid_mass[MAX_EDGES] = {
                57.021463735, //G
                137.058911875, //H
                113.084064015, //I
-               0, //J
+               99999, //J
                128.094963050, //K
                113.084064015, //L
                131.040484645, //M
@@ -58,9 +58,9 @@ float pp_amino_acid_mass[MAX_EDGES] = {
                150.95363, //U
                99.068413945, //V
                186.079312980, //W
-               0, //X
+               99999, //X
                163.063328575, //Y
-               0 //Z 
+               99999 //Z 
             };
 
 void phd_split_string(std::string str, std::string splitBy, std::vector<std::string>& tokens)
