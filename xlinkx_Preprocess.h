@@ -40,9 +40,7 @@ private:
                                   double dMZ2,
                                   double *pdTmpRawData,
                                   double *pdTmpFastXcorrData,
-                                  double *pdTmpCorrelationData,
-                                  double *pdTmpSmoothedSpectrum,
-                                  double *pdTmpPeakExtracted);
+                                  double *pdTmpCorrelationData);
    static bool CheckExistOutFile(int iCharge,
                                  int iScanNum);
    static bool AdjustMassTol(struct Query *pScoring);
@@ -59,9 +57,7 @@ private:
                           double dMZ2,
                           double *pdTmpRawData,
                           double *pdTmpFastXcorrData,
-                          double *pdTmpCorrelationData,
-                          double *pdSmoothedSpectrum,
-                          double *pdTmpPeakExtracted);
+                          double *pdTmpCorrelationData);
    static bool LoadIons(struct Query *pScoring,
                         double *pdTmpRawData,
                         Spectrum mstSpectrum,
@@ -72,18 +68,6 @@ private:
                             double *pdTmpCorrelationData,
                             struct Query *pScoring,
                             struct PreprocessStruct *pPre);
-   static bool Smooth(double *data,
-                      int iArraySize,
-                      double *pdSmoothedSpectrum);
-   static bool PeakExtract(double *data,
-                           int iArraySize,
-                           double *pdTmpPeakExtracted);
-   static void GetTopIons(double *pdTmpRawData,
-                          struct msdata *pTmpSpData,
-                          int iArraySize);
-   static int QsortByIon(const void *p0,
-                         const void *p1);
-   static void StairStep(struct msdata *pTmpSpData);
    static bool IsValidInputType(int inputType);
 
    // Private member variables
@@ -95,8 +79,6 @@ private:
    static double **ppdTmpRawDataArr;          //MH: Number of arrays equals threads
    static double **ppdTmpFastXcorrDataArr;    //MH: Ditto
    static double **ppdTmpCorrelationDataArr;  //MH: Ditto
-   static double **ppdTmpSmoothedSpectrumArr; //MH: Ditto
-   static double **ppdTmpPeakExtractedArr;    //MH: Ditto
 };
 
 #endif // _XLINKXPREPROCESS_H_

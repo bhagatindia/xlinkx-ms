@@ -30,10 +30,7 @@ bool *xlinkx_preprocess::pbMemoryPool;
 double **xlinkx_preprocess::ppdTmpRawDataArr;
 double **xlinkx_preprocess::ppdTmpFastXcorrDataArr;
 double **xlinkx_preprocess::ppdTmpCorrelationDataArr;
-double **xlinkx_preprocess::ppdTmpSmoothedSpectrumArr;
-double **xlinkx_preprocess::ppdTmpPeakExtractedArr;
 
-// Generate data for both sp scoring (pfSpScoreData) and xcorr analysis (FastXcorr).
 xlinkx_preprocess::xlinkx_preprocess()
 {
 }
@@ -98,9 +95,7 @@ void xlinkx_preprocess::LoadAndPreprocessSpectra(MSReader &mstReader,
                   dMZ2,
                   ppdTmpRawDataArr[i],
                   ppdTmpFastXcorrDataArr[i],
-                  ppdTmpCorrelationDataArr[i],
-                  ppdTmpSmoothedSpectrumArr[i],
-                  ppdTmpPeakExtractedArr[i]);
+                  ppdTmpCorrelationDataArr[i]);
 
          }
       }
@@ -120,14 +115,11 @@ bool xlinkx_preprocess::Preprocess(struct Query *pScoring,
                                    double dMZ2,
                                    double *pdTmpRawData,
                                    double *pdTmpFastXcorrData,
-                                   double *pdTmpCorrelationData,
-                                   double *pdTmpSmoothedSpectrum,
-                                   double *pdTmpPeakExtracted)
+                                   double *pdTmpCorrelationData)
 {
    int i;
    int x;
    int y;
-   struct msdata pTmpSpData[NUM_SP_IONS];
    struct PreprocessStruct pPre;
 
    pPre.iHighestIon = 0;
@@ -165,8 +157,6 @@ bool xlinkx_preprocess::Preprocess(struct Query *pScoring,
    memset(pdTmpRawData, 0, iTmp);
    memset(pdTmpFastXcorrData, 0, iTmp);
    memset(pdTmpCorrelationData, 0, iTmp);
-   memset(pdTmpSmoothedSpectrum, 0, iTmp);
-   memset(pdTmpPeakExtracted, 0, iTmp);
 
    // pdTmpRawData is a binned array holding raw data
    if (!LoadIons(pScoring, pdTmpRawData, mstSpectrum, &pPre, dMZ1, dMZ2))
@@ -366,94 +356,6 @@ bool xlinkx_preprocess::Preprocess(struct Query *pScoring,
    delete[] pScoring->pfFastXcorrData;
    pScoring->pfFastXcorrData = NULL;
 
-   // Create data for sp scoring.
-   // Arbitrary bin size cutoff to do smoothing, peak extraction.
-   if (g_staticParams.tolerances.dFragmentBinSize >= 0.10)
-   {
-      if (!Smooth(pdTmpRawData, pScoring->_spectrumInfoInternal.iArraySize, pdTmpSmoothedSpectrum))
-      {
-         return false;
-      }
-
-      if (!PeakExtract(pdTmpRawData, pScoring->_spectrumInfoInternal.iArraySize, pdTmpPeakExtracted))
-      {
-         return false;
-      }
-   }
-
-   for (i=0; i<NUM_SP_IONS; i++)
-   {
-      pTmpSpData[i].dIon = 0.0;
-      pTmpSpData[i].dIntensity = 0.0;
-   }
-
-   GetTopIons(pdTmpRawData, &(pTmpSpData[0]), pScoring->_spectrumInfoInternal.iArraySize);
-
-   qsort(pTmpSpData, NUM_SP_IONS, sizeof(struct msdata), QsortByIon);
-
-   // Modify for Sp data.
-   StairStep(pTmpSpData);
-
-   try
-   {
-      pScoring->pfSpScoreData = new float[pScoring->_spectrumInfoInternal.iArraySize]();
-   }
-   catch (std::bad_alloc& ba)
-   {
-      fprintf(stderr,  " Error - new(pfSpScoreData[%d]). bad_alloc: %s.\n", pScoring->_spectrumInfoInternal.iArraySize, ba.what());
-      fprintf(stderr, "Xlinkx ran out of memory. Look into \"spectrum_batch_size\"\n");
-      fprintf(stderr, "parameters to address mitigate memory use.\n");
-      return false;
-   }
-
-   // note that pTmpSpData[].dIon values are already BIN'd
-   for (i=0; i<NUM_SP_IONS; i++)
-      pScoring->pfSpScoreData[(int)(pTmpSpData[i].dIon)] = (float) pTmpSpData[i].dIntensity;
-
-   // MH: Fill sparse matrix for SpScore
-   pScoring->iSpScoreData = pScoring->_spectrumInfoInternal.iArraySize / SPARSE_MATRIX_SIZE + 1;
-
-   try
-   {
-      pScoring->ppfSparseSpScoreData = new float*[pScoring->iSpScoreData]();
-   }
-   catch (std::bad_alloc& ba)
-   {
-      fprintf(stderr,  " Error - new(pScoring->ppfSparseSpScoreData[%d]). bad_alloc: %s.\n", pScoring->iSpScoreData, ba.what());
-      fprintf(stderr, "Xlinkx ran out of memory. Look into \"spectrum_batch_size\"\n");
-      fprintf(stderr, "parameters to address mitigate memory use.\n");
-      return false;
-   }
-
-   for (i=0; i<pScoring->_spectrumInfoInternal.iArraySize; i++)
-   {
-      if (pScoring->pfSpScoreData[i] > FLOAT_ZERO)
-      {
-         x=i/SPARSE_MATRIX_SIZE;
-         if (pScoring->ppfSparseSpScoreData[x]==NULL)
-         {
-            try
-            {
-               pScoring->ppfSparseSpScoreData[x] = new float[SPARSE_MATRIX_SIZE]();
-            }
-            catch (std::bad_alloc& ba)
-            {
-               fprintf(stderr,  " Error - new(pScoring->ppfSparseSpScoreData[%d][%d]). bad_alloc: %s.\n", x, SPARSE_MATRIX_SIZE, ba.what());
-               fprintf(stderr, "Xlinkx ran out of memory. Look into \"spectrum_batch_size\"\n");
-               fprintf(stderr, "parameters to address mitigate memory use.\n");
-               return false;
-            }
-            for (y=0; y<SPARSE_MATRIX_SIZE; y++)
-               pScoring->ppfSparseSpScoreData[x][y]=0;
-         }
-         y=i-(x*SPARSE_MATRIX_SIZE);
-         pScoring->ppfSparseSpScoreData[x][y] = pScoring->pfSpScoreData[i];
-      }
-   }
-
-   delete[] pScoring->pfSpScoreData;
-   pScoring->pfSpScoreData = NULL;
-
    return true;
 }
 
@@ -552,9 +454,7 @@ bool xlinkx_preprocess::PreprocessSpectrum(Spectrum &spec,
                                          double dMZ2,
                                          double *pdTmpRawData,
                                          double *pdTmpFastXcorrData,
-                                         double *pdTmpCorrelationData,
-                                         double *pdTmpSmoothedSpectrum,
-                                         double *pdTmpPeakExtracted)
+                                         double *pdTmpCorrelationData)
 {
    int z;
    int zStop;
@@ -627,8 +527,7 @@ bool xlinkx_preprocess::PreprocessSpectrum(Spectrum &spec,
       // Populate pdCorrelation data.
       // NOTE: there must be a good way of doing this just once per spectrum instead
       //       of repeating for each charge state.
-      if (!Preprocess(pScoring, spec, dMZ1, dMZ2, pdTmpRawData, pdTmpFastXcorrData,
-               pdTmpCorrelationData, pdTmpSmoothedSpectrum, pdTmpPeakExtracted))
+      if (!Preprocess(pScoring, spec, dMZ1, dMZ2, pdTmpRawData, pdTmpFastXcorrData, pdTmpCorrelationData))
       {
          return false;
       }
@@ -889,202 +788,6 @@ void xlinkx_preprocess::MakeCorrData(double *pdTmpRawData,
 }
 
 
-// Smooth input data over 5 points.
-bool xlinkx_preprocess::Smooth(double *data,
-                             int iArraySize,
-                             double *pdTmpSmoothedSpectrum)
-{
-   int  i;
-
-   data[0] = 0.0;
-   data[1] = 0.0;
-   data[iArraySize-1] = 0.0;
-   data[iArraySize-2] = 0.0;
-
-   for (i=2; i<iArraySize-2; i++)
-   {
-      // *0.0625 is same as divide by 16.
-      pdTmpSmoothedSpectrum[i] = (data[i-2]+4.0*data[i-1]+6.0*data[i]+4.0*data[i+1]+data[i+2]) * 0.0625;
-   }
-
-   memcpy(data, pdTmpSmoothedSpectrum, iArraySize*sizeof(double));
-
-   return true;
-}
-
-
-// Run 2 passes through to pull out peaks.
-bool xlinkx_preprocess::PeakExtract(double *data,
-                                  int iArraySize,
-                                  double *pdTmpPeakExtracted)
-{
-   int  i,
-        ii,
-        iStartIndex,
-        iEndIndex;
-   double dStdDev,
-          dAvgInten;
-
-   // 1st pass, choose only peak greater than avg + dStdDev.
-   for (i=0; i<iArraySize; i++)
-   {
-      pdTmpPeakExtracted[i] = 0.0;
-      dAvgInten = 0.0;
-
-      iStartIndex = i-50;
-      if (i-50 < 0)
-         iStartIndex = 0;
-
-      iEndIndex = i+50;
-      if (i+50 > iArraySize-1)
-         iEndIndex = iArraySize-1;
-
-      for (ii=iStartIndex; ii<=iEndIndex; ii++)
-         dAvgInten += (double)data[ii];
-      dAvgInten /= iEndIndex-iStartIndex;
-
-      dStdDev = 0.0;
-      for (ii=iStartIndex; ii<=iEndIndex; ii++)
-         dStdDev += (data[ii]-dAvgInten)*(data[ii]-dAvgInten);
-      dStdDev = sqrt(dStdDev/(iEndIndex-iStartIndex+1));
-
-      if ((i > 0) && (i < iArraySize-1))
-      {
-         if (data[i] > (dAvgInten+dStdDev))
-         {
-            pdTmpPeakExtracted[i] = data[i] - dAvgInten + dStdDev;
-            data[i] = 0;     // Remove the peak before 2nd pass.
-         }
-      }
-   }
-
-   // 2nd pass, choose only peak greater than avg + 2*dStdDev.
-   for (i=0; i<iArraySize; i++)
-   {
-      dAvgInten = 0.0;
-
-      iStartIndex = i-50;
-      if (i-50 < 0)
-         iStartIndex = 0;
-
-      iEndIndex = i+50;
-      if (i+50 > iArraySize-1)
-         iEndIndex = iArraySize-1;
-
-      for (ii=iStartIndex; ii<=iEndIndex; ii++)
-         dAvgInten += (double)data[ii];
-      dAvgInten /= iEndIndex-iStartIndex;
-
-      dStdDev = 0.0;
-      for (ii=iStartIndex; ii<=iEndIndex; ii++)
-         dStdDev += (data[ii]-dAvgInten)*(data[ii]-dAvgInten);
-      dStdDev = sqrt(dStdDev/(iEndIndex-iStartIndex+1));
-
-      if ((i > 0) && (i < iArraySize-1))
-      {
-         if (data[i] > (dAvgInten + 2*dStdDev))
-            pdTmpPeakExtracted[i] = data[i] - dAvgInten + dStdDev;
-      }
-   }
-
-   memcpy(data, pdTmpPeakExtracted, (size_t)iArraySize*sizeof(double));
-
-   return true;
-}
-
-
-// Pull out top # ions for intensity matching in search.
-void xlinkx_preprocess::GetTopIons(double *pdTmpRawData,
-                                 struct msdata *pTmpSpData,
-                                 int iArraySize)
-{
-   int  i,
-        ii,
-        iLowestIntenIndex=0;
-   double dLowestInten=0.0,
-          dMaxInten=0.0;
-
-   for (i=0; i<iArraySize; i++)
-   {
-      if (pdTmpRawData[i] > dLowestInten)
-      {
-         (pTmpSpData+iLowestIntenIndex)->dIntensity = (double)pdTmpRawData[i];
-         (pTmpSpData+iLowestIntenIndex)->dIon = (double)i;
-
-         if ((pTmpSpData+iLowestIntenIndex)->dIntensity > dMaxInten)
-            dMaxInten = (pTmpSpData+iLowestIntenIndex)->dIntensity;
-
-         dLowestInten = (pTmpSpData+0)->dIntensity;
-         iLowestIntenIndex = 0;
-
-         for (ii=1; ii<NUM_SP_IONS; ii++)
-         {
-            if ((pTmpSpData+ii)->dIntensity < dLowestInten)
-            {
-               dLowestInten = (pTmpSpData+ii)->dIntensity;
-               iLowestIntenIndex=ii;
-            }
-         }
-      }
-   }
-
-   if (dMaxInten > FLOAT_ZERO)
-   {
-      for (i=0; i<NUM_SP_IONS; i++)
-         (pTmpSpData+i)->dIntensity = (((pTmpSpData+i)->dIntensity)/dMaxInten)*100.0;
-   }
-}
-
-
-int xlinkx_preprocess::QsortByIon(const void *p0, const void *p1)
-{
-   if ( ((struct msdata *) p1)->dIon < ((struct msdata *) p0)->dIon )
-      return (1);
-   else if ( ((struct msdata *) p1)->dIon > ((struct msdata *) p0)->dIon )
-      return (-1);
-   else
-      return (0);
-}
-
-
-// Works on Sp data.
-void xlinkx_preprocess::StairStep(struct msdata *pTmpSpData)
-{
-   int  i,
-        ii,
-        iii;
-   double dMaxInten,
-          dGap;
-
-   i=0;
-   while (i < NUM_SP_IONS-1)
-   {
-      ii = i;
-      dMaxInten = (pTmpSpData+i)->dIntensity;
-      dGap = 0.0;
-
-      while (dGap<=g_staticParams.tolerances.dFragmentBinSize && ii<NUM_SP_IONS-1)
-      {
-         ii++;
-         dGap = (pTmpSpData+ii)->dIon - (pTmpSpData+ii-1)->dIon;
-
-         // Finds the max intensity for adjacent points.
-         if (dGap<=g_staticParams.tolerances.dFragmentBinSize)
-         {
-            if ((pTmpSpData+ii)->dIntensity > dMaxInten)
-               dMaxInten = (pTmpSpData+ii)->dIntensity;
-         }
-      }
-
-      // Sets the adjacent points to the dMaxInten.
-      for (iii=i; iii<ii; iii++)
-         (pTmpSpData+iii)->dIntensity = dMaxInten;
-
-      i = ii;
-   }
-}
-
-
 //MH: This function allocates memory to be shared by threads for spectral processing
 bool xlinkx_preprocess::AllocateMemory(int maxNumThreads)
 {
@@ -1177,40 +880,6 @@ bool xlinkx_preprocess::AllocateMemory(int maxNumThreads)
       }
    }
 
-   //MH: Allocate arrays
-   ppdTmpSmoothedSpectrumArr = new double*[maxNumThreads]();
-   for (i=0; i<maxNumThreads; i++)
-   {
-      try
-      {
-         ppdTmpSmoothedSpectrumArr[i] = new double[iArraySize]();
-      }
-      catch (std::bad_alloc& ba)
-      {
-         fprintf(stderr,  " Error - new(pdTmpSmoothedSpectrum[%d]). bad_alloc: %s.\n", iArraySize, ba.what());
-         fprintf(stderr, "Xlinkx ran out of memory. Look into \"spectrum_batch_size\"\n");
-         fprintf(stderr, "parameters to address mitigate memory use.\n");
-         return false;
-      }
-   }
-
-   //MH: Allocate arrays
-   ppdTmpPeakExtractedArr = new double*[maxNumThreads]();
-   for (i=0; i<maxNumThreads; i++)
-   {
-      try
-      {
-         ppdTmpPeakExtractedArr[i] = new double[iArraySize]();
-      }
-      catch (std::bad_alloc& ba)
-      {
-         fprintf(stderr,  " Error - new(pdTmpSmoothedSpectrum[%d]). bad_alloc: %s.\n", iArraySize, ba.what());
-         fprintf(stderr, "Xlinkx ran out of memory. Look into \"spectrum_batch_size\"\n");
-         fprintf(stderr, "parameters to address mitigate memory use.\n");
-         return false;
-      }
-   }
-
    return true;
 }
 
@@ -1227,15 +896,11 @@ bool xlinkx_preprocess::DeallocateMemory(int maxNumThreads)
       delete [] ppdTmpRawDataArr[i];
       delete [] ppdTmpFastXcorrDataArr[i];
       delete [] ppdTmpCorrelationDataArr[i];
-      delete [] ppdTmpSmoothedSpectrumArr[i];
-      delete [] ppdTmpPeakExtractedArr[i];
    }
 
    delete [] ppdTmpRawDataArr;
    delete [] ppdTmpFastXcorrDataArr;
    delete [] ppdTmpCorrelationDataArr;
-   delete [] ppdTmpSmoothedSpectrumArr;
-   delete [] ppdTmpPeakExtractedArr;
 
    return true;
 }

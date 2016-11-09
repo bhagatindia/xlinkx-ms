@@ -609,15 +609,12 @@ struct Query
    unsigned long int  _uliNumMatchedDecoyPeptides;
 
    // Sparse matrix representation of data
-   int iSpScoreData;    //size of sparse matrix
    int iFastXcorrData;  //MH: I believe these are all the same size now.
    int iFastXcorrDataNL;
-   float **ppfSparseSpScoreData;
    float **ppfSparseFastXcorrData;
    float **ppfSparseFastXcorrDataNL;
 
    // Standard array representation of data
-   float *pfSpScoreData;
    float *pfFastXcorrData;
    float *pfFastXcorrDataNL;  // pfFastXcorrData with NH3, H2O contributions
 
@@ -653,11 +650,9 @@ struct Query
       _uliNumMatchedPeptides = 0;
       _uliNumMatchedDecoyPeptides = 0;
 
-      ppfSparseSpScoreData = NULL;
       ppfSparseFastXcorrData = NULL;
       ppfSparseFastXcorrDataNL = NULL;          // pfFastXcorrData with NH3, H2O contributions
 
-      pfSpScoreData = NULL;
       pfFastXcorrData = NULL;
       pfFastXcorrDataNL = NULL;              // pfFastXcorrData with NH3, H2O contributions
 
@@ -680,13 +675,6 @@ struct Query
    ~Query()
    {
       int i;
-      for (i=0;i<iSpScoreData;i++)
-      {
-         if (ppfSparseSpScoreData[i] != NULL)
-            delete[] ppfSparseSpScoreData[i];
-      }
-      delete[] ppfSparseSpScoreData;
-      ppfSparseSpScoreData = NULL;
 
       for (i=0;i<iFastXcorrData;i++)
       {
