@@ -18,6 +18,7 @@
 #include "xlinkx.h"
 #include "xlinkx_Search.h"
 #include "xlinkx_DataInternal.h"
+#include "xlinkx_Preprocess.h"
 
 // Generate data for both sp scoring (pfSpScoreData) and xcorr analysis (FastXcorr).
 xlinkx_Search::xlinkx_Search()
@@ -58,44 +59,74 @@ void insert_pep_pq(char *pepArray[], float xcorrArray[], char *ins_pep, float in
    }
 }
 
-void xlinkx_Search::SearchForPeptides(const char *protein_file, enzyme_cut_params params, const char *pep_hash_file)
+void xlinkx_Search::SearchForPeptides(char *szMZXML,
+                                      const char *protein_file,
+                                      enzyme_cut_params params,
+                                      const char *pep_hash_file)
 {
    int i;
    int ii;
    double dTolerance;
    double dPPM = 20.0;  // use 20ppm tolerance for now
 
-#define LYSINE_MOD 197.0324
+#define LYSINE_MOD 197.032422
 
    char *toppep1[NUMPEPTIDES], *toppep2[NUMPEPTIDES];
    float xcorrPep1[NUMPEPTIDES], xcorrPep2[NUMPEPTIDES];
+
+   MSReader mstReader;
+   Spectrum mstSpectrum;
+   // We want to read only MS2 scans.
+   vector<MSSpectrumType> msLevel;
+   msLevel.push_back(MS2);
+
+   mstReader.setFilter(msLevel);
+   mstReader.readFile(szMZXML, mstSpectrum, 1);
+ 
+   xlinkx_preprocess::AllocateMemory(1);
 
    // If PeptideHash not present, generate it now; otherwise open the hash file.
    protein_hash_db_t phdp = phd_retrieve_hash_db(protein_file, params, pep_hash_file);
 
    for (i=0; i<(int)pvSpectrumList.size(); i++)
    {
+//if (pvSpectrumList.at(i).iScanNumber == 24686)
       for (ii=0; ii<(int)pvSpectrumList.at(i).pvdPrecursors.size(); ii++)
       {
+         // JKE: need to move load and preprocess spectra here
+         // Need charge states for mass1 & mass2 to exclude peaks from spectra
+         // before processing.
+         double dMZ1 =  (pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1
+               + pvSpectrumList.at(i).pvdPrecursors.at(ii).iCharge1 * PROTON_MASS)/ pvSpectrumList.at(i).pvdPrecursors.at(ii).iCharge1;
+         double dMZ2 =  (pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2
+               + pvSpectrumList.at(i).pvdPrecursors.at(ii).iCharge2 * PROTON_MASS)/ pvSpectrumList.at(i).pvdPrecursors.at(ii).iCharge2;
 
+         xlinkx_preprocess::LoadAndPreprocessSpectra(mstReader, pvSpectrumList.at(i).iScanNumber, dMZ1, dMZ2);
+ 
          for (int li = 0; li < NUMPEPTIDES; li++) {
             xcorrPep1[li] = xcorrPep2[li] = -99999;
             toppep1[li] = toppep2[li] = NULL;
          }
 
-         printf("scan %d, %f, %f\n", pvSpectrumList.at(i).iScanNumber,
+         printf("Scan %d, retrieving peptides of mass %0.4f (%d+ %0.4f) and %0.4f (%d+ %0.4f)\n",
+               pvSpectrumList.at(i).iScanNumber,
                pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1,
-               pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2);
-
-         cout << "Retrieving peptides of mass " << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 << 
-            " and " << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 << endl;
+               pvSpectrumList.at(i).pvdPrecursors.at(ii).iCharge1,
+               dMZ1,
+               pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2,
+               pvSpectrumList.at(i).pvdPrecursors.at(ii).iCharge2,
+               dMZ2);
 
          double pep_mass1 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 - LYSINE_MOD - g_staticParams.precalcMasses.dOH2;
-         cout << "After Lysine residue reduction the peptide of mass " << pep_mass1 << " are being extracted" << endl;
-         if (pep_mass1 <= 0) {
+         cout << "After Lysine residue reduction the peptide of mass " << pep_mass1 << " are being extracted";
+         cout << " (" << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 << ")" << endl;
+         if (pep_mass1 <= 0)
+         {
             cout << "Peptide mass is coming out to be zero after removing Lysine resideu" << endl;
             exit(1);
          }
+
+         double dXcorr = 0.0;
 
          dTolerance = (dPPM * pep_mass1) / 1e6;
          vector<string*> *peptides = phdp->phd_get_peptides_ofmass(pep_mass1);
@@ -104,9 +135,14 @@ void xlinkx_Search::SearchForPeptides(const char *protein_file, enzyme_cut_param
             char *szPeptide = new char[(*peptide).length() + 1];
             strcpy(szPeptide, (*peptide).c_str() );
 
-            double dXcorr = XcorrScore(szPeptide, pvSpectrumList.at(i).iScanNumber);
+            // sanity check to ignore peptides w/unknown AA residues
+            // should not be needed now that this is addressed in the hash building
+            if (strchr(szPeptide, 'B') || strchr(szPeptide, 'X') || strchr(szPeptide, 'J') || strchr(szPeptide, 'Z'))
+               dXcorr = 0.0;
+            else
+               dXcorr = XcorrScore(szPeptide, pvSpectrumList.at(i).iScanNumber);
 
-            cout << "pep1: " << *peptide << "  xcorr " << dXcorr << endl;
+//          cout << "pep1: " << *peptide << "  xcorr " << dXcorr << endl;
             insert_pep_pq(toppep1, xcorrPep1, szPeptide, dXcorr);
          }
 
@@ -115,27 +151,38 @@ void xlinkx_Search::SearchForPeptides(const char *protein_file, enzyme_cut_param
          for (int li = 0 ; li < NUMPEPTIDES; li++) cout << "pep1_top: " << ((toppep1[li] != NULL)? toppep1[li]: "") << " xcorr " << xcorrPep1[li] << endl;
 
          double pep_mass2 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 - LYSINE_MOD - g_staticParams.precalcMasses.dOH2;
-         cout << "After Lysine residue reduction the peptide of mass " << pep_mass2 << " are being extracted" << endl;
-         if (pep_mass2 <= 0) {
+         cout << "After Lysine residue reduction the peptide of mass " << pep_mass2 << " are being extracted";
+         cout << " (" << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 << ")" << endl;
+         if (pep_mass2 <= 0)
+         {
             cout << "Peptide mass is coming out to be less than or equal to zero after removing lysine residue" << endl;
             exit(1);
          }
+
+//pep_mass2 -= 1;  // account for weird 58 mod on Cysteine for this data
+
+         dTolerance = (dPPM * pep_mass2) / 1e6;
          peptides = phdp->phd_get_peptides_ofmass(pep_mass2);
          for (string *peptide : *peptides)
          {
-
             char *szPeptide = new char[(*peptide).length() + 1];
             strcpy(szPeptide, (*peptide).c_str() );
 
-            double dXcorr = XcorrScore(szPeptide, pvSpectrumList.at(i).iScanNumber);
+            // sanity check to ignore peptides w/unknown AA residues
+            // should not be needed now that this is addressed in the hash building
+            if (strchr(szPeptide, 'B') || strchr(szPeptide, 'X') || strchr(szPeptide, 'J') || strchr(szPeptide, 'Z'))
+               dXcorr = 0.0;
+            else
+               dXcorr = XcorrScore(szPeptide, pvSpectrumList.at(i).iScanNumber);
 
-            cout << "pep2: " << *peptide << "  xcorr " << dXcorr << endl;
+//          cout << "pep2: " << *peptide << "  xcorr " << dXcorr << endl;
             insert_pep_pq(toppep2, xcorrPep2, szPeptide, dXcorr);
          }
 
          cout << "Top "<< NUMPEPTIDES << " pep2 peptides for this scan are " << endl;
 
-         for (int li = 0; li < NUMPEPTIDES; li++) cout << "pep2_top: " << (toppep2[li] != NULL? toppep2[li] : "") << " xcorr " << xcorrPep2[li] << endl;
+         for (int li = 0; li < NUMPEPTIDES; li++)
+            cout << "pep2_top: " << (toppep2[li] != NULL? toppep2[li] : "") << " xcorr " << xcorrPep2[li] << endl;
       }
    }
 }
@@ -178,11 +225,11 @@ double xlinkx_Search::XcorrScore(char *szPeptide,
 
          bin = BIN(dBion);
          x =  bin / SPARSE_MATRIX_SIZE;
-         if (g_pvQuery.at(iWhichQuery)->ppfSparseFastXcorrData[x]==NULL || x>iMax) // x should never be > iMax so this is just a safety check
-            continue;
-         y = bin - (x*SPARSE_MATRIX_SIZE);
-         dXcorr += g_pvQuery.at(iWhichQuery)->ppfSparseFastXcorrData[x][y];
-
+         if (!(g_pvQuery.at(iWhichQuery)->ppfSparseFastXcorrData[x]==NULL || x>iMax)) // x should never be > iMax so this is just a safety check
+         {
+            y = bin - (x*SPARSE_MATRIX_SIZE);
+            dXcorr += g_pvQuery.at(iWhichQuery)->ppfSparseFastXcorrData[x][y];
+         }
 
          dYion += g_staticParams.massUtility.pdAAMassFragment[(int)szPeptide[iLenPeptide -1 - i]];
          if (szPeptide[iLenPeptide -1 - i] == 'K' && !bYionLysine)
@@ -193,10 +240,11 @@ double xlinkx_Search::XcorrScore(char *szPeptide,
 
          bin = BIN(dYion);
          x =  bin / SPARSE_MATRIX_SIZE;
-         if (g_pvQuery.at(iWhichQuery)->ppfSparseFastXcorrData[x]==NULL || x>iMax) // x should never be > iMax so this is just a safety check
-            continue;
-         y = bin - (x*SPARSE_MATRIX_SIZE);
-         dXcorr += g_pvQuery.at(iWhichQuery)->ppfSparseFastXcorrData[x][y];
+         if (!(g_pvQuery.at(iWhichQuery)->ppfSparseFastXcorrData[x]==NULL || x>iMax)) // x should never be > iMax so this is just a safety check
+         {
+            y = bin - (x*SPARSE_MATRIX_SIZE);
+            dXcorr += g_pvQuery.at(iWhichQuery)->ppfSparseFastXcorrData[x][y];
+         }
       }
 
       if (!bBionLysine && !bYionLysine) // sanity check
@@ -207,6 +255,9 @@ double xlinkx_Search::XcorrScore(char *szPeptide,
 
       dXcorr *= 0.005;
    }
+
+   if (dXcorr < 0.0)
+      dXcorr = 0.0;
 
    return dXcorr;
 }

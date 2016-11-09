@@ -53,7 +53,6 @@ int main(int argc, char **argv)
    // Load and preprocess all MS/MS scans that have a pair of peptide masses that add up to precursor
    g_staticParams.tolerances.dFragmentBinSize = 1.0005;
    g_staticParams.dInverseBinWidth = 1.0 /g_staticParams.tolerances.dFragmentBinSize;
-   LOAD_SPECTRA(szMZXML);
 
    int iCount=0;
    for (int ii=0; ii<(int)pvSpectrumList.size(); ii++)
@@ -124,7 +123,7 @@ int main(int argc, char **argv)
    params.postnocut_amino = "P";
 
    // Now open fasta file and get a list of all peptides with masses close to 
-   xlinkx_Search::SearchForPeptides(argv[2], params, argv[3]);
+   xlinkx_Search::SearchForPeptides(szMZXML, argv[2], params, argv[3]);
 
    return 0;
 
@@ -265,7 +264,7 @@ void READ_HK1(char *szHK)
 
                   sscanf(szBuf, "P\t%lf\t%d\t%d\t", &dMass, &iCharge, &iIntensity);
 
-                  dMZ = (dMass + (iCharge*PROTON))/iCharge;
+                  dMZ = (dMass + (iCharge*PROTON_MASS))/iCharge;
 
                   if (fabs(dMZ -  pvSpectrumList.at(iListCt).dPrecursorMZ) < 0.5 && iIntensity > iMaxIntensity)
                   {
@@ -375,6 +374,7 @@ void READ_HK2(char *szHK)
 
                   pPeaks[iNumPeaks].dNeutralMass = dMass;
                   pPeaks[iNumPeaks].iCharge = iCharge;
+                  pPeaks[iNumPeaks].iIntensity = iIntensity;
 
                   iNumPeaks++;
                }
@@ -403,21 +403,20 @@ void READ_HK2(char *szHK)
                               && pPeaks[ii].iCharge < pvSpectrumList.at(iListCt).iPrecursorCharge)
                         {
                            struct PrecursorsStruct pTmp;
+                           int a=i;
+                           int b=ii;;
 
-                           if (pPeaks[i].dNeutralMass < pPeaks[ii].dNeutralMass)
+                           if (pPeaks[i].dNeutralMass > pPeaks[ii].dNeutralMass)
                            {
-                              pTmp.dNeutralMass1 = pPeaks[i].dNeutralMass;
-                              pTmp.dNeutralMass2 = pPeaks[ii].dNeutralMass;
-                              pTmp.iCharge1 = pPeaks[i].iCharge;
-                              pTmp.iCharge2 = pPeaks[i].iCharge;
+                              a=ii;
+                              b=i;
                            }
-                           else
-                           {
-                              pTmp.dNeutralMass2 = pPeaks[i].dNeutralMass;
-                              pTmp.dNeutralMass1 = pPeaks[ii].dNeutralMass;
-                              pTmp.iCharge2 = pPeaks[i].iCharge;
-                              pTmp.iCharge1 = pPeaks[i].iCharge;
-                           }
+                           pTmp.dNeutralMass1 = pPeaks[a].dNeutralMass;
+                           pTmp.dNeutralMass2 = pPeaks[b].dNeutralMass;
+                           pTmp.iCharge1 = pPeaks[a].iCharge;
+                           pTmp.iCharge2 = pPeaks[b].iCharge;
+                           pTmp.iIntensity1 = pPeaks[a].iIntensity;
+                           pTmp.iIntensity2 = pPeaks[b].iIntensity;
 
                            // Do a quick check here and push_back only if the two
                            // masses are not very similar to existing masses
@@ -430,6 +429,25 @@ void READ_HK2(char *szHK)
                                     && WITHIN_TOLERANCE(pTmp.dNeutralMass2, pvSpectrumList.at(iListCt).pvdPrecursors.at(iii).dNeutralMass2))
                               {
                                  bMassesAlreadyPresent = true;
+
+                                 // Can have same peak in different charge states so store charge state that is most intense
+                                 if (pTmp.iCharge1 != pvSpectrumList.at(iListCt).pvdPrecursors.at(iii).iCharge1)
+                                 {
+                                    if (pTmp.iIntensity1 > pvSpectrumList.at(iListCt).pvdPrecursors.at(iii).iIntensity1)
+                                    {
+                                       pvSpectrumList.at(iListCt).pvdPrecursors.at(iii).iIntensity1 = pTmp.iIntensity1;
+                                       pvSpectrumList.at(iListCt).pvdPrecursors.at(iii).iCharge1 = pTmp.iCharge1;
+                                    }
+                                 }
+                                 if (pTmp.iCharge2 != pvSpectrumList.at(iListCt).pvdPrecursors.at(iii).iCharge2)
+                                 {
+                                    if (pTmp.iIntensity2 > pvSpectrumList.at(iListCt).pvdPrecursors.at(iii).iIntensity2)
+                                    {
+                                       pvSpectrumList.at(iListCt).pvdPrecursors.at(iii).iIntensity2 = pTmp.iIntensity2;
+                                       pvSpectrumList.at(iListCt).pvdPrecursors.at(iii).iCharge2 = pTmp.iCharge2;
+                                    }
+                                 }
+
                                  break;
                               }
                            }
@@ -463,47 +481,4 @@ int WITHIN_TOLERANCE(double dMass1, double dMass2)
       return 1;
    else
       return 0;
-}
-
-
-void LOAD_SPECTRA(char *szMZXML)
-{
-   MSReader mstReader;
-   Spectrum mstSpectrum;
-
-   printf(" reading %s ... ", szMZXML); fflush(stdout);
-
-   // We want to read only MS2 scans.
-   vector<MSSpectrumType> msLevel;
-   msLevel.push_back(MS2);
-
-   mstReader.setFilter(msLevel);
-   mstReader.readFile(szMZXML, mstSpectrum, 1);
-
-   xlinkx_preprocess::AllocateMemory(1);
-
-   int iReadScans = 0;
-   int iSkippedScans = 0;
-   int iLast = (int)pvSpectrumList.size();
-   for (int i=0; i<iLast; i++)
-   {
-      if ((int)pvSpectrumList.at(i).pvdPrecursors.size() > 0) // this means pair of peptide masses found
-      {
-         xlinkx_preprocess::LoadAndPreprocessSpectra(mstReader, pvSpectrumList.at(i).iScanNumber);
-         iReadScans++;
-      }
-      else
-         iSkippedScans++;
-
-      if (i%200)
-      {  
-         printf("%3d%%", (int)(100.0*i/iLast));
-         fflush(stdout);
-         printf("\b\b\b\b");
-      }
-   }
-
-   printf("100%%\n");
-
-   //printf("iRead %d, iSkipped %d\n\n", iReadScans, iSkippedScans);
 }

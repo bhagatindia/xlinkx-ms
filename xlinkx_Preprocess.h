@@ -25,7 +25,9 @@ public:
 
    static void Reset();
    static void LoadAndPreprocessSpectra(MSReader &mstReader,
-                                        int iScanNumber);
+                                        int iScanNumber,
+                                        double dMZ1,
+                                        double dMZ2);
    static bool DoneProcessingAllSpectra();
    static bool AllocateMemory(int maxNumThreads);
    static bool DeallocateMemory(int maxNumThreads);
@@ -34,6 +36,8 @@ private:
 
    // Private static methods
    static bool PreprocessSpectrum(Spectrum &spec,
+                                  double dMZ1,
+                                  double dMZ2,
                                   double *pdTmpRawData,
                                   double *pdTmpFastXcorrData,
                                   double *pdTmpCorrelationData,
@@ -51,6 +55,8 @@ private:
                          int iNumSpectraLoaded);
    static bool Preprocess(struct Query *pScoring,
                           Spectrum mstSpectrum,
+                          double dMZ1,
+                          double dMZ2,
                           double *pdTmpRawData,
                           double *pdTmpFastXcorrData,
                           double *pdTmpCorrelationData,
@@ -59,7 +65,9 @@ private:
    static bool LoadIons(struct Query *pScoring,
                         double *pdTmpRawData,
                         Spectrum mstSpectrum,
-                        struct PreprocessStruct *pPre);
+                        struct PreprocessStruct *pPre,
+                        double dMZ1,
+                        double dMZ2);
    static void MakeCorrData(double *pdTmpRawData,
                             double *pdTmpCorrelationData,
                             struct Query *pScoring,

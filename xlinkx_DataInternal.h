@@ -497,7 +497,7 @@ struct StaticParams
       options.bPrintExpectScore = 1;
       options.bOverrideCharge = 0;
       options.iRemovePrecursor = 0;
-      options.dRemovePrecursorTol = 1.5;
+      options.dRemovePrecursorTol = 1.0;
 
       options.bOutputTxtFile = 0;
       options.bOutputPepXMLFile = 1;

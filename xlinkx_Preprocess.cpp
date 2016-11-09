@@ -50,7 +50,9 @@ void xlinkx_preprocess::Reset()
 }
 
 void xlinkx_preprocess::LoadAndPreprocessSpectra(MSReader &mstReader,
-                                                 int iScanNumber)
+                                                 int iScanNumber,
+                                                 double dMZ1,
+                                                 double dMZ2)
 {
    Spectrum mstSpectrum;           // For holding spectrum.
 
@@ -92,6 +94,8 @@ void xlinkx_preprocess::LoadAndPreprocessSpectra(MSReader &mstReader,
          {
             int i=0;
             PreprocessSpectrum(mstSpectrum,
+                  dMZ1,
+                  dMZ2,
                   ppdTmpRawDataArr[i],
                   ppdTmpFastXcorrDataArr[i],
                   ppdTmpCorrelationDataArr[i],
@@ -111,12 +115,14 @@ bool xlinkx_preprocess::DoneProcessingAllSpectra()
 
 
 bool xlinkx_preprocess::Preprocess(struct Query *pScoring,
-                                 Spectrum mstSpectrum,
-                                 double *pdTmpRawData,
-                                 double *pdTmpFastXcorrData,
-                                 double *pdTmpCorrelationData,
-                                 double *pdTmpSmoothedSpectrum,
-                                 double *pdTmpPeakExtracted)
+                                   Spectrum mstSpectrum,
+                                   double dMZ1,                // exclude these intact precursors peaks
+                                   double dMZ2,
+                                   double *pdTmpRawData,
+                                   double *pdTmpFastXcorrData,
+                                   double *pdTmpCorrelationData,
+                                   double *pdTmpSmoothedSpectrum,
+                                   double *pdTmpPeakExtracted)
 {
    int i;
    int x;
@@ -163,7 +169,7 @@ bool xlinkx_preprocess::Preprocess(struct Query *pScoring,
    memset(pdTmpPeakExtracted, 0, iTmp);
 
    // pdTmpRawData is a binned array holding raw data
-   if (!LoadIons(pScoring, pdTmpRawData, mstSpectrum, &pPre))
+   if (!LoadIons(pScoring, pdTmpRawData, mstSpectrum, &pPre, dMZ1, dMZ2))
    {
       return false;
    }
@@ -542,6 +548,8 @@ bool xlinkx_preprocess::CheckExit(int iAnalysisType,
 
 
 bool xlinkx_preprocess::PreprocessSpectrum(Spectrum &spec,
+                                         double dMZ1,
+                                         double dMZ2,
                                          double *pdTmpRawData,
                                          double *pdTmpFastXcorrData,
                                          double *pdTmpCorrelationData,
@@ -553,221 +561,79 @@ bool xlinkx_preprocess::PreprocessSpectrum(Spectrum &spec,
 
    int iScanNumber = spec.getScanNumber();
 
-   int iAddCharge = -1;  // specifies how charge states are going to be applied
-                         //-1 = should never apply
-                         // 0 = use charge in file, else use range
-                         // 1 = use precursor_charge range
-                         // 2 = search only charge state in file within precursor_charge
-                         // 3 = use charge in file else use 1+ or precursor_charge range
-   int bFileHasCharge = 0;
-   if (spec.sizeZ() > 0)
-      bFileHasCharge = 1;
-
-   if (g_staticParams.options.iStartCharge > 0)
-   {
-      if (!bFileHasCharge)    // override_charge specified, no charge in file
-      {
-         if (g_staticParams.options.bOverrideCharge == 0
-               || g_staticParams.options.bOverrideCharge == 1
-               || g_staticParams.options.bOverrideCharge == 2)
-         {
-            iAddCharge = 2;
-         }
-         else if (g_staticParams.options.bOverrideCharge == 3)
-         {
-            iAddCharge = 3;
-         }
-      }
-      else                    // have a charge from file //
-      {
-         // bOverrideCharge == 0, 2, 3 are not relevant here
-         if (g_staticParams.options.bOverrideCharge == 1)
-         {
-            iAddCharge = 2;
-         }
-         else
-         {
-            iAddCharge = 0;   // do nothing
-         }
-      }
-   }
-   else  // precursor_charge range not specified
-   {
-      if (!bFileHasCharge)    // no charge in file
-      {
-         iAddCharge = 1;
-      }
-      else
-      {
-         iAddCharge = 0;      // have a charge from file; nothing to do
-      }
-   }
-
-   if (iAddCharge == 2)  // use specific charge range
-   {
-      // if charge is already specified, don't re-add it here when overriding charge range
-      int iChargeFromFile = 0;
-      if (bFileHasCharge)                  // FIX: no reason that file only has one charge so iChargeFromFile should be an array
-         iChargeFromFile= spec.atZ(0).z;   // should read all charge states up to spec.sizeZ();
-
-      for (z=g_staticParams.options.iStartCharge; z<=g_staticParams.options.iEndCharge; z++)
-      {
-         if (z != iChargeFromFile)
-            spec.addZState(z, spec.getMZ() * z - (z-1) * PROTON_MASS);
-      }
-   }
-   else if (iAddCharge == 1 || iAddCharge == 3)  // do 1+ or charge range rule
-   {
-      int i=0;
-      double dSumBelow = 0.0;
-      double dSumTotal = 0.0;
-
-      while (true)
-      {
-         if (i >= spec.size())
-            break;
-
-         dSumTotal += spec.at(i).intensity;
-
-         if (spec.at(i).mz < spec.getMZ())
-            dSumBelow += spec.at(i).intensity;
-
-         i++;
-      }
-
-      if (isEqual(dSumTotal, 0.0) || ((dSumBelow/dSumTotal) > 0.95))
-      {
-         z = 1;
-         spec.addZState(z, spec.getMZ() * z - (z-1) * PROTON_MASS);
-      }
-      else
-      {
-         if (iAddCharge == 1)  // 2+ and 3+
-         {
-            z=2;
-            spec.addZState(z, spec.getMZ() * z - (z-1) * PROTON_MASS);
-            z=3;
-            spec.addZState(z, spec.getMZ() * z - (z-1) * PROTON_MASS);
-         }
-         else // iAddCharge == 3
-         {
-            // This option will either use charge from file or
-            // charge_range with 1+ rule.  So no redundant addition
-            // of charges possible
-
-            for (z=g_staticParams.options.iStartCharge; z<=g_staticParams.options.iEndCharge; z++)
-            {
-               spec.addZState(z, spec.getMZ() * z - (z-1) * PROTON_MASS);
-            }
-         }
-      }
-   }
-   else if (iAddCharge == -1)  // should never get here
-   {
-      fprintf(stderr,  " Error - iAddCharge=%d\n",  iAddCharge);
-      return false;
-   }
-
    // Set our boundaries for multiple z lines.
    zStop = spec.sizeZ();
 
    for (z=0; z<zStop; z++)
    {
-      if (g_staticParams.options.bOverrideCharge == 2 && g_staticParams.options.iStartCharge > 0)
-      {
-         // ignore spectra that aren't 2+ or 3+.
-         if (spec.atZ(z).z < g_staticParams.options.iStartCharge || z > g_staticParams.options.iEndCharge)
-         {
-            continue;
-         }
-      }
-
       int iPrecursorCharge = spec.atZ(z).z;  // I need this before iChargeState gets assigned.
       double dMass = spec.atZ(z).mh;
+      Query *pScoring = new Query();
 
-      if (!g_staticParams.options.bOverrideCharge
-            || g_staticParams.options.iStartCharge == 0
-            || (g_staticParams.options.bOverrideCharge == 3 && bFileHasCharge)
-            || (g_staticParams.options.bOverrideCharge
-               && (g_staticParams.options.iStartCharge > 0
-                  && ((iPrecursorCharge>=g_staticParams.options.iStartCharge
-                        && iPrecursorCharge<=g_staticParams.options.iEndCharge )
-                     || (iPrecursorCharge == 1 && g_staticParams.options.bOverrideCharge == 3)))))
+      pScoring->_pepMassInfo.dExpPepMass = dMass;
+      pScoring->_spectrumInfoInternal.iChargeState = iPrecursorCharge;
+      pScoring->_spectrumInfoInternal.dTotalIntensity = 0.0;
+      pScoring->_spectrumInfoInternal.dRTime = 60.0*spec.getRTime();;
+      pScoring->_spectrumInfoInternal.iScanNumber = iScanNumber;
+
+      if (iPrecursorCharge == 1)
+         pScoring->_spectrumInfoInternal.iMaxFragCharge = 1;
+      else
       {
-         if (CheckExistOutFile(iPrecursorCharge, iScanNumber)
-               && (isEqual(g_staticParams.options.dPeptideMassLow, 0.0)
-                  || ((dMass >= g_staticParams.options.dPeptideMassLow)
-                     && (dMass <= g_staticParams.options.dPeptideMassHigh)))
-               && iPrecursorCharge <= g_staticParams.options.iMaxPrecursorCharge)
+         pScoring->_spectrumInfoInternal.iMaxFragCharge = iPrecursorCharge - 1;
+
+         if (pScoring->_spectrumInfoInternal.iMaxFragCharge > g_staticParams.options.iMaxFragmentCharge)
+            pScoring->_spectrumInfoInternal.iMaxFragCharge = g_staticParams.options.iMaxFragmentCharge;
+      }
+
+      //MH: Find appropriately sized array cushion based on user parameters. Fixes error found by Patrick Pedrioli for
+      // very wide mass tolerance searches (i.e. 500 Da).
+      double dCushion = 0.0;
+      if (g_staticParams.tolerances.iMassToleranceUnits == 0) // amu
+      {
+         dCushion = g_staticParams.tolerances.dInputTolerance;
+
+         if (g_staticParams.tolerances.iMassToleranceType == 1)  // precursor m/z tolerance
          {
-            Query *pScoring = new Query();
-
-            pScoring->_pepMassInfo.dExpPepMass = dMass;
-            pScoring->_spectrumInfoInternal.iChargeState = iPrecursorCharge;
-            pScoring->_spectrumInfoInternal.dTotalIntensity = 0.0;
-            pScoring->_spectrumInfoInternal.dRTime = 60.0*spec.getRTime();;
-            pScoring->_spectrumInfoInternal.iScanNumber = iScanNumber;
-
-            if (iPrecursorCharge == 1)
-               pScoring->_spectrumInfoInternal.iMaxFragCharge = 1;
-            else
-            {
-               pScoring->_spectrumInfoInternal.iMaxFragCharge = iPrecursorCharge - 1;
-
-               if (pScoring->_spectrumInfoInternal.iMaxFragCharge > g_staticParams.options.iMaxFragmentCharge)
-                  pScoring->_spectrumInfoInternal.iMaxFragCharge = g_staticParams.options.iMaxFragmentCharge;
-            }
-
-            //MH: Find appropriately sized array cushion based on user parameters. Fixes error found by Patrick Pedrioli for
-            // very wide mass tolerance searches (i.e. 500 Da).
-            double dCushion = 0.0;
-            if (g_staticParams.tolerances.iMassToleranceUnits == 0) // amu
-            {
-               dCushion = g_staticParams.tolerances.dInputTolerance;
-
-               if (g_staticParams.tolerances.iMassToleranceType == 1)  // precursor m/z tolerance
-               {
-                  dCushion *= pScoring->_spectrumInfoInternal.iChargeState;
-               }
-            }
-            else if (g_staticParams.tolerances.iMassToleranceUnits == 1) // mmu
-            {
-               dCushion = g_staticParams.tolerances.dInputTolerance * 0.001;
-
-               if (g_staticParams.tolerances.iMassToleranceType == 1)  // precursor m/z tolerance
-               {
-                  dCushion *= pScoring->_spectrumInfoInternal.iChargeState;
-               }
-            }
-            else // ppm
-            {
-               dCushion = g_staticParams.tolerances.dInputTolerance * dMass / 1000000.0;
-            }
-            pScoring->_spectrumInfoInternal.iArraySize = (int)((dMass + dCushion + 2.0) * g_staticParams.dInverseBinWidth);
-
-            // g_massRange.iMaxFragmentCharge is global maximum fragment ion charge across all spectra.
-            if (pScoring->_spectrumInfoInternal.iMaxFragCharge > g_massRange.iMaxFragmentCharge)
-            {
-               g_massRange.iMaxFragmentCharge = pScoring->_spectrumInfoInternal.iMaxFragCharge;
-            }
-
-            if (!AdjustMassTol(pScoring))
-            {
-               return false;
-            }
-
-            // Populate pdCorrelation data.
-            // NOTE: there must be a good way of doing this just once per spectrum instead
-            //       of repeating for each charge state.
-            if (!Preprocess(pScoring, spec, pdTmpRawData, pdTmpFastXcorrData,
-                     pdTmpCorrelationData, pdTmpSmoothedSpectrum, pdTmpPeakExtracted))
-            {
-               return false;
-            }
-
-            g_pvQuery.push_back(pScoring);
+            dCushion *= pScoring->_spectrumInfoInternal.iChargeState;
          }
       }
+      else if (g_staticParams.tolerances.iMassToleranceUnits == 1) // mmu
+      {
+         dCushion = g_staticParams.tolerances.dInputTolerance * 0.001;
+
+         if (g_staticParams.tolerances.iMassToleranceType == 1)  // precursor m/z tolerance
+         {
+            dCushion *= pScoring->_spectrumInfoInternal.iChargeState;
+         }
+      }
+      else // ppm
+      {
+         dCushion = g_staticParams.tolerances.dInputTolerance * dMass / 1000000.0;
+      }
+      pScoring->_spectrumInfoInternal.iArraySize = (int)((dMass + dCushion + 2.0) * g_staticParams.dInverseBinWidth);
+
+      // g_massRange.iMaxFragmentCharge is global maximum fragment ion charge across all spectra.
+      if (pScoring->_spectrumInfoInternal.iMaxFragCharge > g_massRange.iMaxFragmentCharge)
+      {
+         g_massRange.iMaxFragmentCharge = pScoring->_spectrumInfoInternal.iMaxFragCharge;
+      }
+
+      if (!AdjustMassTol(pScoring))
+      {
+         return false;
+      }
+
+      // Populate pdCorrelation data.
+      // NOTE: there must be a good way of doing this just once per spectrum instead
+      //       of repeating for each charge state.
+      if (!Preprocess(pScoring, spec, dMZ1, dMZ2, pdTmpRawData, pdTmpFastXcorrData,
+               pdTmpCorrelationData, pdTmpSmoothedSpectrum, pdTmpPeakExtracted))
+      {
+         return false;
+      }
+
+      g_pvQuery.push_back(pScoring);
    }
 
    return true;
@@ -916,11 +782,15 @@ bool xlinkx_preprocess::AdjustMassTol(struct Query *pScoring)
 bool xlinkx_preprocess::LoadIons(struct Query *pScoring,
                                double *pdTmpRawData,
                                Spectrum mstSpectrum,
-                               struct PreprocessStruct *pPre)
+                               struct PreprocessStruct *pPre,
+                               double dMZ1,
+                               double dMZ2)
 {
    int  i;
    double dIon,
           dIntensity;
+
+   double dReporter = 752.413341467;
 
    i = 0;
    while(true)
@@ -945,50 +815,13 @@ bool xlinkx_preprocess::LoadIons(struct Query *pScoring,
             if (iBinIon > pPre->iHighestIon)
                pPre->iHighestIon = iBinIon;
 
-            if ((iBinIon < pScoring->_spectrumInfoInternal.iArraySize)
-                  && (dIntensity > pdTmpRawData[iBinIon]))
+            if ((iBinIon < pScoring->_spectrumInfoInternal.iArraySize) && (dIntensity > pdTmpRawData[iBinIon]))
             {
-               if (g_staticParams.options.iRemovePrecursor == 1)
-               {
-                  double dMZ = (pScoring->_pepMassInfo.dExpPepMass
-                        + (pScoring->_spectrumInfoInternal.iChargeState - 1) * PROTON_MASS)
-                     / (double)(pScoring->_spectrumInfoInternal.iChargeState);
-
-                  if (fabs(dIon - dMZ) > g_staticParams.options.dRemovePrecursorTol)
-                  {
-                     if (dIntensity > pdTmpRawData[iBinIon])
-                        pdTmpRawData[iBinIon] = dIntensity;
-
-                     if (pdTmpRawData[iBinIon] > pPre->dHighestIntensity)
-                        pPre->dHighestIntensity = pdTmpRawData[iBinIon];
-                  }
-               }
-               else if (g_staticParams.options.iRemovePrecursor == 2)
-               {
-                  int j;
-                  int bNotPrec = 1;
-
-                  for (j=1; j <= pScoring->_spectrumInfoInternal.iChargeState; j++)
-                  {
-                     double dMZ;
-
-                     dMZ = (pScoring->_pepMassInfo.dExpPepMass + (j - 1)*PROTON_MASS) / (double)(j);
-                     if (fabs(dIon - dMZ) < g_staticParams.options.dRemovePrecursorTol)
-                     {
-                        bNotPrec = 0;
-                        break;
-                     }
-                  }
-                  if (bNotPrec)
-                  {
-                     if (dIntensity > pdTmpRawData[iBinIon])
-                        pdTmpRawData[iBinIon] = dIntensity;
-
-                     if (pdTmpRawData[iBinIon] > pPre->dHighestIntensity)
-                        pPre->dHighestIntensity = pdTmpRawData[iBinIon];
-                  }
-               }
-               else // iRemovePrecursor==0
+               if ( !(dIon > dMZ1-0.1 && dIon < dMZ1+1.1)    // if ion is not within range of either released precursors
+                     && !(dIon > dMZ2-0.1 && dIon < dMZ2+1.1)
+                     && !(dIon > dReporter-0.1 && dIon < dReporter+0.1)  // also remove 752 reporter ion (751.406065 + 1.00727646688)
+                     && !(dIon > dReporter+PROTON_MASS-0.1 && dIon < dReporter+PROTON_MASS+0.1)
+                     && !(dIon > dReporter+2*PROTON_MASS-0.1 && dIon < dReporter+2*PROTON_MASS+0.1))
                {
                   if (dIntensity > pdTmpRawData[iBinIon])
                      pdTmpRawData[iBinIon] = dIntensity;
@@ -996,6 +829,7 @@ bool xlinkx_preprocess::LoadIons(struct Query *pScoring,
                   if (pdTmpRawData[iBinIon] > pPre->dHighestIntensity)
                      pPre->dHighestIntensity = pdTmpRawData[iBinIon];
                }
+
             }
          }
       }
