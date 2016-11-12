@@ -6,12 +6,15 @@
 #include <sstream>
 #include <fstream>
 #include <set>
+#include <cmath>
 
 #include "protein_pep_hash.pb.h"
 
 using namespace std;
 
 #include "xlinkx-hash.h"
+
+float phd_calculate_mass_peptide(const string peptide);
 
 vector<string*>* protein_hash_db_::phd_get_peptides_ofmass(int mass)
 {
@@ -28,6 +31,36 @@ vector<string*>* protein_hash_db_::phd_get_peptides_ofmass(int mass)
    }
    return ret;
 }
+
+#define PEP_WITHIN_TOLERANCE(mass_given, tolerance, mass_computed) \
+  ((mass_computed <= (mass_given + tolerance)) && (mass_computed >= (mass_given - tolerance)))
+
+vector<string*>* protein_hash_db_::phd_get_peptides_ofmass_tolerance(float mass_given, float tolerance)
+{
+   // another memory leak
+   vector<string*> *ret = new vector<string*>;
+
+   cout << "Retrieving peptides of mass " << mass_given << " with tolerance "<< tolerance << endl;
+
+   int mass_min = floor(mass_given - tolerance);
+   int mass_max = ceil(mass_given + tolerance);
+   for (int mass = mass_min; mass <= mass_max; mass++) {
+       cout << "Retrieving peptides of mass " << mass << endl;
+       peptide_hash_database::phd_peptide_mass pepm = phd_file_entry.phdpepm(mass);
+       if (pepm.phdpmass_mass() == mass) {
+           for (int i = 0; i < pepm.phdpmass_peptide_list_size(); i++) {
+               float mass_computed = phd_calculate_mass_peptide(pepm.phdpmass_peptide_list(i).phdpep_sequence());
+               if (PEP_WITHIN_TOLERANCE(mass_given, tolerance, mass_computed)) {
+                   string *str = new string(pepm.phdpmass_peptide_list(i).phdpep_sequence());
+                   ret->push_back(str);
+               }
+           }
+       }
+   }
+   return ret;
+}
+
+// Define a free function in the library to free the memory
 
 #define MIN_FRAGMENT_MASS 600
 #define MAX_FRAGMENT_MASS 6000
@@ -341,7 +374,7 @@ void phd_handle_semi_tryptic(enzyme_cut_params params, const string protein_seq,
 
 }
 
-int phd_calculate_mass_peptide(const string peptide)
+float phd_calculate_mass_peptide(const string peptide)
 {
    float mass = 0;
    for (const char &c : peptide) {

@@ -129,7 +129,8 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
          double dXcorr = 0.0;
 
          dTolerance = (dPPM * pep_mass1) / 1e6;
-         vector<string*> *peptides = phdp->phd_get_peptides_ofmass(pep_mass1);
+         //vector<string*> *peptides = phdp->phd_get_peptides_ofmass(pep_mass1);
+         vector<string*> *peptides = phdp->phd_get_peptides_ofmass_tolerance(pep_mass1, 1);
          for (string *peptide : *peptides)
          {
             char *szPeptide = new char[(*peptide).length() + 1];
@@ -162,7 +163,8 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
 //pep_mass2 -= 1;  // account for weird 58 mod on Cysteine for this data
 
          dTolerance = (dPPM * pep_mass2) / 1e6;
-         peptides = phdp->phd_get_peptides_ofmass(pep_mass2);
+         //peptides = phdp->phd_get_peptides_ofmass(pep_mass2);
+         peptides = phdp->phd_get_peptides_ofmass_tolerance(pep_mass2, 1);
          for (string *peptide : *peptides)
          {
             char *szPeptide = new char[(*peptide).length() + 1];
