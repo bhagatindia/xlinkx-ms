@@ -8,7 +8,7 @@ OBJS = xlinkx.o xlinkx_Preprocess.o xlinkx_Search.o xlinkx_MassSpecUtils.o
 DEPS = xlinkx.h Common.h xlinkx_Data.h xlinkx_DataInternal.h xlinkx_Preprocess.h xlinkx_MassSpecUtils.h
 
 LIBPATHS = -L$(MSTOOLKIT) -L$(PROTOBUF)/.libs
-LIBS = -lmstoolkitlite -lm -pthread -static xlinkx-hash -lprotobuf 
+LIBS = -lmstoolkitlite -lm -pthread -static xlinkx-hash.a -lprotobuf 
 ifdef MSYSTEM
    LIBS += -lws2_32
 endif
@@ -19,12 +19,12 @@ xlinkx.exe: $(OBJS)
 	git submodule init; git submodule update
 	cd $(MSTOOLKIT) ; make lite 
 	cd $(HASH) ; make; 
-	cp hash/xlinkx-hash .
+	cp hash/xlinkx-hash.a .
 	${CXX} $(CXXFLAGS) $(OBJS) $(LIBPATHS) $(LIBS) -o ${EXECNAME}
 
 xlinkx.o: xlinkx.cpp $(DEPS)
 	cd $(HASH) ; make; 
-	cp hash/xlinkx-hash .
+	cp hash/xlinkx-hash.a .
 	git submodule init; git submodule update
 	${CXX} ${CXXFLAGS} xlinkx.cpp -c
 
@@ -41,6 +41,6 @@ xlinkx_MassSpecUtils.o: xlinkx_MassSpecUtils.cpp Common.h xlinkx_MassSpecUtils.h
 	${CXX} ${CXXFLAGS} xlinkx_MassSpecUtils.cpp -c
 
 clean:
-	rm -f *.o ${EXECNAME} xlinkx-hash
+	rm -f *.o ${EXECNAME} xlinkx-hash.a
 	cd $(MSTOOLKIT) ; make clean
 	cd $(HASH) ; make clean
