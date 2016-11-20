@@ -19,6 +19,7 @@
 #include "xlinkx_Search.h"
 #include "xlinkx_DataInternal.h"
 #include "xlinkx_Preprocess.h"
+#include "CometDecoys.h"
 
 // Generate data for both sp scoring (pfSpScoreData) and xcorr analysis (FastXcorr).
 xlinkx_Search::xlinkx_Search()
@@ -73,6 +74,379 @@ void xlinkx_print_histogram(int hist_pep[])
 {
     for (int i = 0; i < NUM_BINS; i++) printf("%d ", hist_pep[i]);
     printf("\n");
+}
+
+#define DECOY_SIZE 3000
+#define MAX_DECOY_PEP_LEN 40
+
+bool xlinkx_Search::CalculateEValue(int iScanNumber, int hist_pep[])
+{
+   int i;
+   int *piHistogram = hist_pep;
+   int iMaxCorr;
+   int iStartCorr;
+   int iNextCorr;
+   double dSlope;
+   double dIntercept;
+   int iWhichQuery;
+
+   // find which
+   for (iWhichQuery=0; iWhichQuery<(int)g_pvQuery.size(); iWhichQuery++)
+   {
+      if (g_pvQuery.at(iWhichQuery)->_spectrumInfoInternal.iScanNumber == iScanNumber)
+         break;
+   }
+
+   if (iWhichQuery >= (int)g_pvQuery.size())
+       return false;
+
+   Query* pQuery = g_pvQuery.at(iWhichQuery);
+
+   if (pQuery->iHistogramCount < DECOY_SIZE)
+   {
+      if (!GenerateXcorrDecoys(iWhichQuery))
+      {
+          return false;
+      }
+   }
+
+   LinearRegression(piHistogram, &dSlope, &dIntercept, &iMaxCorr, &iStartCorr, &iNextCorr);
+
+   pQuery->fPar[0] = (float)dIntercept;  // b
+   pQuery->fPar[1] = (float)dSlope    ;  // m
+   pQuery->fPar[2] = (float)iStartCorr;
+   pQuery->fPar[3] = (float)iNextCorr;
+   pQuery->siMaxXcorr = (short)iMaxCorr;
+
+   dSlope *= 10.0; // Used in pow() function so do multiply outside of for loop.
+
+   int iLoopCount;
+
+   iLoopCount = max(pQuery->iMatchPeptideCount, pQuery->iDecoyMatchPeptideCount);
+
+   if (iLoopCount > g_staticParams.options.iNumPeptideOutputLines)
+      iLoopCount = g_staticParams.options.iNumPeptideOutputLines;
+
+   for (i=0; i<iLoopCount; i++)
+   {
+      if (dSlope >= 0.0)
+      {
+         if (i<pQuery->iMatchPeptideCount)
+            pQuery->_pResults[i].dExpect = 999.0;
+         if (i<pQuery->iDecoyMatchPeptideCount)
+            pQuery->_pDecoys[i].dExpect = 999.0;
+      }
+      else
+      {
+         double dExpect;
+
+         if (i<pQuery->iMatchPeptideCount)
+         {
+            dExpect = pow(10.0, dSlope * pQuery->_pResults[i].fXcorr + dIntercept);
+            if (dExpect > 999.0)
+               dExpect = 999.0;
+
+/*
+            // Sanity constraints - no low e-values allowed for xcorr < 1.0.
+            // I'll admit xcorr < 1.0 is an arbitrary cutoff but something is needed.
+            if (dExpect < 1.0)
+            {
+               if (pQuery->_pResults[i].fXcorr < 1.0)
+                  dExpect = 10.0;
+            }
+*/
+
+            pQuery->_pResults[i].dExpect = dExpect;
+         }
+
+         if (i<pQuery->iDecoyMatchPeptideCount)
+         {
+            dExpect = pow(10.0, dSlope * pQuery->_pDecoys[i].fXcorr + dIntercept);
+            if (dExpect > 999.0)
+               dExpect = 999.0;
+
+/*
+            if (dExpect < 1.0)
+            {
+               if (pQuery->_pDecoys[i].fXcorr < 1.0)
+                  dExpect = 10.0;
+            }
+*/
+
+            pQuery->_pDecoys[i].dExpect = dExpect;
+         }
+      }
+   }
+
+   return true;
+}
+
+void xlinkx_Search::LinearRegression(int *piHistogram,
+                                         double *slope,
+                                         double *intercept,
+                                         int *iMaxXcorr,
+                                         int *iStartXcorr,
+                                         int *iNextXcorr)
+{
+   double Sx, Sxy;      // Sum of square distances.
+   double Mx, My;       // means
+   double b, a;
+   double SumX, SumY;   // Sum of X and Y values to calculate mean.
+
+   double dCummulative[HISTO_SIZE];  // Cummulative frequency at each xcorr value.
+
+   int i;
+   int iNextCorr;    // 2nd best xcorr index
+   int iMaxCorr=0;   // max xcorr index
+   int iStartCorr;
+   int iNumPoints;
+
+   // Find maximum correlation score index.
+   for (i=HISTO_SIZE-2; i>=0; i--)
+   {
+      if (piHistogram[i] > 0)
+         break;
+   }
+   iMaxCorr = i;
+
+   iNextCorr =0;
+   for (i=0; i<iMaxCorr; i++)
+   {
+      if (piHistogram[i]==0)
+      {
+         // register iNextCorr if there's a histo value of 0 consecutively
+         if (piHistogram[i+1]==0 || i+1 == iMaxCorr)
+         {
+            if (i>0)
+               iNextCorr = i-1;
+            break;
+         }
+      }
+   }
+
+   if (i==iMaxCorr)
+   {
+      iNextCorr = iMaxCorr;
+      if (iMaxCorr>12)
+         iNextCorr = iMaxCorr-2;
+   }
+
+   // Create cummulative distribution function from iNextCorr down, skipping the outliers.
+   dCummulative[iNextCorr] = piHistogram[iNextCorr];
+   for (i=iNextCorr-1; i>=0; i--)
+   {
+      dCummulative[i] = dCummulative[i+1] + piHistogram[i];
+      if (piHistogram[i+1] == 0)
+         dCummulative[i+1] = 0.0;
+   }
+
+   // log10
+   for (i=iNextCorr; i>=0; i--)
+   {
+      piHistogram[i] = (int)dCummulative[i];  // First store cummulative in histogram.
+      dCummulative[i] = log10(dCummulative[i]);
+   }
+
+   iStartCorr = 0;
+   if (iNextCorr >= 30)
+      iStartCorr = (int)(iNextCorr - iNextCorr*0.25);
+   else if (iNextCorr >= 15)
+      iStartCorr = (int)(iNextCorr - iNextCorr*0.5);
+
+   Mx=My=a=b=0.0;
+
+   while (iStartCorr >= 0)
+   {
+      Sx=Sxy=SumX=SumY=0.0;
+      iNumPoints=0;
+
+      // Calculate means.
+      for (i=iStartCorr; i<=iNextCorr; i++)
+      {
+         if (piHistogram[i] > 0)
+         {
+            SumY += (float)dCummulative[i];
+            SumX += i;
+            iNumPoints++;
+         }
+      }
+
+      if (iNumPoints > 0)
+      {
+         Mx = SumX / iNumPoints;
+         My = SumY / iNumPoints;
+      }
+      else
+         Mx = My = 0.0;
+
+      // Calculate sum of squares.
+      for (i=iStartCorr; i<=iNextCorr; i++)
+      {
+         if (dCummulative[i] > 0)
+         {
+            double dX;
+            double dY;
+
+            dX = i - Mx;
+            dY = dCummulative[i] - My;
+
+            Sx  += dX*dX;
+            Sxy += dX*dY;
+         }
+      }
+
+      if (Sx > 0)
+         b = Sxy / Sx;   // slope
+      else
+         b = 0;
+
+      if (b < 0.0)
+         break;
+      else
+         iStartCorr--;
+   }
+
+   a = My - b*Mx;  // y-intercept
+
+   *slope = b;
+   *intercept = a;
+   *iMaxXcorr = iMaxCorr;
+   *iStartXcorr = iStartCorr;
+   *iNextXcorr = iNextCorr;
+}
+
+
+// Make synthetic decoy spectra to fill out correlation histogram by going
+// through each candidate peptide and rotating spectra in m/z space.
+bool xlinkx_Search::GenerateXcorrDecoys(int iWhichQuery)
+{
+   int i;
+   int ii;
+   int j;
+   int k;
+   int iMaxFragCharge;
+   int ctCharge;
+   double dBion;
+   double dYion;
+   double dFastXcorr;
+   double dFragmentIonMass = 0.0;
+
+   int *piHistogram;
+
+   int iFragmentIonMass;
+
+   Query* pQuery = g_pvQuery.at(iWhichQuery);
+
+   piHistogram = pQuery->iXcorrHistogram;
+
+   iMaxFragCharge = pQuery->_spectrumInfoInternal.iMaxFragCharge;
+
+   // DECOY_SIZE is the minimum # of decoys required or else this function is
+   // called.  So need generate iLoopMax more xcorr scores for the histogram.
+   int iLoopMax = DECOY_SIZE - pQuery->iHistogramCount;
+   bool bDecoy;
+   int iLastEntry;
+
+   // Determine if using target or decoy peptides to rotate to fill out histogram.
+   if (pQuery->iMatchPeptideCount >= pQuery->iDecoyMatchPeptideCount)
+   {
+      iLastEntry = pQuery->iMatchPeptideCount;
+      bDecoy = false;
+   }
+   else
+   {
+      iLastEntry = pQuery->iDecoyMatchPeptideCount;
+      bDecoy = true;
+   }
+
+   if (iLastEntry > g_staticParams.options.iNumStored)
+      iLastEntry = g_staticParams.options.iNumStored;
+
+   j=0;
+   for (i=0; i<iLoopMax; i++)  // iterate through required # decoys
+   {
+      dFastXcorr = 0.0;
+
+      for (j=0; j<MAX_DECOY_PEP_LEN; j++)  // iterate through decoy fragment ions
+      {
+         dBion = decoyIons[i].pdIonsN[j];
+         dYion = decoyIons[i].pdIonsC[j];
+
+         for (ii=0; ii<g_staticParams.ionInformation.iNumIonSeriesUsed; ii++)
+         {
+            int iWhichIonSeries = g_staticParams.ionInformation.piSelectedIonSeries[ii];
+
+            dFragmentIonMass =  0.0;
+            switch (iWhichIonSeries)
+            {
+               case ION_SERIES_A:
+                  dFragmentIonMass = dBion - g_staticParams.massUtility.dCO;
+                  break;
+               case ION_SERIES_B:
+                  dFragmentIonMass = dBion;
+                  break;
+               case ION_SERIES_C:
+                  dFragmentIonMass = dBion + g_staticParams.massUtility.dNH3;
+                  break;
+               case ION_SERIES_X:
+                  dFragmentIonMass = dYion + g_staticParams.massUtility.dCOminusH2;
+                  break;
+               case ION_SERIES_Y:
+                  dFragmentIonMass = dYion;
+                  break;
+               case ION_SERIES_Z:
+                  dFragmentIonMass = dYion - g_staticParams.massUtility.dNH2;
+                  break;
+            }
+
+            for (ctCharge=1; ctCharge<=iMaxFragCharge; ctCharge++)
+            {
+               dFragmentIonMass = (dFragmentIonMass + (ctCharge-1)*PROTON_MASS)/ctCharge;
+
+               if (dFragmentIonMass < pQuery->_pepMassInfo.dExpPepMass)
+               {
+                  iFragmentIonMass = BIN(dFragmentIonMass);
+
+                  if (iFragmentIonMass < pQuery->_spectrumInfoInternal.iArraySize && iFragmentIonMass >= 0)
+                  {
+                     int x = iFragmentIonMass / SPARSE_MATRIX_SIZE;
+                     if (pQuery->ppfSparseFastXcorrData[x]!=NULL)
+                     {
+                        int y = iFragmentIonMass - (x*SPARSE_MATRIX_SIZE);
+                        dFastXcorr += pQuery->ppfSparseFastXcorrData[x][y];
+                     }
+                  }
+                  else
+                  {
+                     char szErrorMsg[256];
+                     sprintf(szErrorMsg,  " Error - XCORR DECOY: dFragMass %f, iFragMass %d, ArraySize %d, InputMass %f, scan %d, z %d",
+                           dFragmentIonMass,
+                           iFragmentIonMass,
+                           pQuery->_spectrumInfoInternal.iArraySize,
+                           pQuery->_pepMassInfo.dExpPepMass,
+                           pQuery->_spectrumInfoInternal.iScanNumber,
+                           ctCharge);
+
+                     string strErrorMsg(szErrorMsg);
+                     logerr(szErrorMsg);
+                     return false;
+                  }
+               }
+            }
+         }
+      }
+
+      k = (int)(dFastXcorr*10.0*0.005 + 0.5);  // 10 for histogram, 0.005=50/10000.
+
+      if (k < 0)
+         k = 0;
+      else if (k >= HISTO_SIZE)
+         k = HISTO_SIZE-1;
+
+      piHistogram[k] += 1;
+   }
+
+   return true;
 }
 
 void xlinkx_Search::SearchForPeptides(char *szMZXML,

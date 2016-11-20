@@ -40,6 +40,17 @@ private:
    static double XcorrScore(const char *szPeptide,
                      int iScanNumber);
 
+   static bool CalculateEValue(int iScanNumber, int hist_pep[]);
+
+   static void LinearRegression(int *piHistogram,
+                                         double *slope,
+                                         double *intercept,
+                                         int *iMaxXcorr,
+                                         int *iStartXcorr,
+                                         int *iNextXcorr);
+
+   static bool GenerateXcorrDecoys(int iWhichQuery);
+
    // Private static methods
 
    // Private member variables
