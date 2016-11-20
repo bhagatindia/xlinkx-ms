@@ -59,6 +59,22 @@ void insert_pep_pq(char *pepArray[], float xcorrArray[], char *ins_pep, float in
    }
 }
 
+#define BIN_SIZE 0.1
+#define MAX_XCORR_VALUE 20
+#define NUM_BINS (int)(MAX_XCORR_VALUE/BIN_SIZE + 1)
+
+inline int xlinkx_get_histogram_bin_num(float value)
+{
+    if (value > MAX_XCORR_VALUE) value = MAX_XCORR_VALUE;
+    return value/BIN_SIZE;
+}
+
+void xlinkx_print_histogram(int hist_pep[])
+{
+    for (int i = 0; i < NUM_BINS; i++) printf("%d ", hist_pep[i]);
+    printf("\n");
+}
+
 void xlinkx_Search::SearchForPeptides(char *szMZXML,
                                       const char *protein_file,
                                       enzyme_cut_params params,
@@ -68,6 +84,7 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
    int ii;
    double dTolerance;
    double dPPM = 20.0;  // use 20ppm tolerance for now
+   int hist_pep1[NUM_BINS], hist_pep2[NUM_BINS], hist_combined[NUM_BINS], num_pep1, num_pep2;
 
 #define LYSINE_MOD 197.032422
 
@@ -93,6 +110,9 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
 //if (pvSpectrumList.at(i).iScanNumber == 24686)
       for (ii=0; ii<(int)pvSpectrumList.at(i).pvdPrecursors.size(); ii++)
       {
+
+         for (int i = 0; i < NUM_BINS; i++) hist_pep1[i] = hist_pep2[i] = hist_combined[i] = 0;
+         num_pep1 = num_pep2 = 0;
          // JKE: need to move load and preprocess spectra here
          // Need charge states for mass1 & mass2 to exclude peaks from spectra
          // before processing.
@@ -127,11 +147,13 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
          }
 
          double dXcorr = 0.0;
+         double dXcorr1 = 0.0;
+         double dXcorr2 = 0.0;
 
          dTolerance = (dPPM * pep_mass1) / 1e6;
          //vector<string*> *peptides = phdp->phd_get_peptides_ofmass(pep_mass1);
-         vector<string*> *peptides = phdp->phd_get_peptides_ofmass_tolerance(pep_mass1, 1);
-         for (string *peptide : *peptides)
+         vector<string*> *peptides1 = phdp->phd_get_peptides_ofmass_tolerance(pep_mass1, 1);
+         for (string *peptide : *peptides1)
          {
             char *szPeptide = new char[(*peptide).length() + 1];
             strcpy(szPeptide, (*peptide).c_str() );
@@ -143,10 +165,13 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
             else
                dXcorr = XcorrScore(szPeptide, pvSpectrumList.at(i).iScanNumber);
 
-//          cout << "pep1: " << *peptide << "  xcorr " << dXcorr << endl;
+            int bin_num = xlinkx_get_histogram_bin_num(dXcorr);
+            hist_pep1[bin_num]++;
             insert_pep_pq(toppep1, xcorrPep1, szPeptide, dXcorr);
+            num_pep1++;
          }
 
+         xlinkx_print_histogram(hist_pep1);
          cout << "Top "<< NUMPEPTIDES << " pep1 peptides for this scan are " << endl;
 
          for (int li = 0 ; li < NUMPEPTIDES; li++) cout << "pep1_top: " << ((toppep1[li] != NULL)? toppep1[li]: "") << " xcorr " << xcorrPep1[li] << endl;
@@ -164,8 +189,8 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
 
          dTolerance = (dPPM * pep_mass2) / 1e6;
          //peptides = phdp->phd_get_peptides_ofmass(pep_mass2);
-         peptides = phdp->phd_get_peptides_ofmass_tolerance(pep_mass2, 1);
-         for (string *peptide : *peptides)
+         vector<string*> *peptides2 = phdp->phd_get_peptides_ofmass_tolerance(pep_mass2, 1);
+         for (string *peptide : *peptides2)
          {
             char *szPeptide = new char[(*peptide).length() + 1];
             strcpy(szPeptide, (*peptide).c_str() );
@@ -177,20 +202,46 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
             else
                dXcorr = XcorrScore(szPeptide, pvSpectrumList.at(i).iScanNumber);
 
+            hist_pep2[xlinkx_get_histogram_bin_num(dXcorr)]++;
 //          cout << "pep2: " << *peptide << "  xcorr " << dXcorr << endl;
             insert_pep_pq(toppep2, xcorrPep2, szPeptide, dXcorr);
+            num_pep2++;
          }
 
+         xlinkx_print_histogram(hist_pep2);
          cout << "Top "<< NUMPEPTIDES << " pep2 peptides for this scan are " << endl;
 
          for (int li = 0; li < NUMPEPTIDES; li++)
             cout << "pep2_top: " << (toppep2[li] != NULL? toppep2[li] : "") << " xcorr " << xcorrPep2[li] << endl;
+
+         cout << "Size of peptide1 list is " << num_pep1 << " and the size of peptide2 list is " << num_pep2 << endl;
+         // Computing the combined histogram of xcorr   
+         for (string *peptide1 : *peptides1)
+         {
+
+            // sanity check to ignore peptides w/unknown AA residues
+            // should not be needed now that this is addressed in the hash building
+            
+               dXcorr1 = XcorrScore(peptide1->c_str(), pvSpectrumList.at(i).iScanNumber);
+
+               for (string *peptide2 : *peptides2)
+               {
+                   dXcorr2 = XcorrScore(peptide2->c_str(), pvSpectrumList.at(i).iScanNumber);
+
+                   dXcorr = dXcorr1 + dXcorr2;
+
+                   int bin_num = xlinkx_get_histogram_bin_num(dXcorr);
+                   hist_combined[bin_num]++;
+               }
+         }
+
+         xlinkx_print_histogram(hist_combined);
       }
    }
 }
 
 
-double xlinkx_Search::XcorrScore(char *szPeptide,
+double xlinkx_Search::XcorrScore(const char *szPeptide,
                                  int iScanNumber)
 {
 
