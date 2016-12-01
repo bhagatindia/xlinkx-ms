@@ -23,8 +23,10 @@ vector<string*>* protein_hash_db_::phd_get_peptides_ofmass(int mass)
 
    cout << "Retrieving peptides of mass " << mass << endl;
    peptide_hash_database::phd_peptide_mass pepm = phd_file_entry.phdpepm(mass);
-   if (pepm.phdpmass_mass() == mass) {
-      for (int i = 0; i < pepm.phdpmass_peptide_list_size(); i++) {
+   if (pepm.phdpmass_mass() == mass)
+   {
+      for (int i = 0; i < pepm.phdpmass_peptide_list_size(); i++)
+      {
          string *str = new string(pepm.phdpmass_peptide_list(i).phdpep_sequence());
          ret->push_back(str);
       }
@@ -44,7 +46,9 @@ vector<string*>* protein_hash_db_::phd_get_peptides_ofmass_tolerance(float mass_
 
    int mass_min = floor(mass_given - tolerance);
    int mass_max = ceil(mass_given + tolerance);
-   for (int mass = mass_min; mass <= mass_max; mass++) {
+
+   for (int mass = mass_min; mass <= mass_max; mass++)
+   {
        cout << "Retrieving peptides of mass " << mass << endl;
        peptide_hash_database::phd_peptide_mass pepm = phd_file_entry.phdpepm(mass);
        if (pepm.phdpmass_mass() == mass) {

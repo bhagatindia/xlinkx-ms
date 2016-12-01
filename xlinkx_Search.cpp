@@ -66,127 +66,55 @@ void insert_pep_pq(char *pepArray[], float xcorrArray[], char *ins_pep, float in
 
 inline int xlinkx_get_histogram_bin_num(float value)
 {
-    if (value > MAX_XCORR_VALUE) value = MAX_XCORR_VALUE;
+    if (value > MAX_XCORR_VALUE)
+       value = MAX_XCORR_VALUE;
+    else if (value < 0)
+       value = 0;
     return value/BIN_SIZE;
 }
 
 void xlinkx_print_histogram(int hist_pep[])
 {
-    for (int i = 0; i < NUM_BINS; i++) printf("%d ", hist_pep[i]);
-    printf("\n");
+   for (int i = 0; i <NUM_BINS; i++)
+      printf("%d ", hist_pep[i]);
+   printf("\n");
 }
 
 #define DECOY_SIZE 3000
 #define MAX_DECOY_PEP_LEN 40
 
-bool xlinkx_Search::CalculateEValue(int iScanNumber, int hist_pep[])
+bool xlinkx_Search::CalculateEValue(int *hist_pep,
+                                    int iMatchPepCount,
+                                    double *dSlope,
+                                    double *dIntercept,
+                                    double dNeutralPepMass,
+                                    int iScanNumber)
 {
-   int i;
-   int *piHistogram = hist_pep;
    int iMaxCorr;
    int iStartCorr;
    int iNextCorr;
-   double dSlope;
-   double dIntercept;
-   int iWhichQuery;
 
-   // find which
-   for (iWhichQuery=0; iWhichQuery<(int)g_pvQuery.size(); iWhichQuery++)
+   if (iMatchPepCount < DECOY_SIZE)
    {
-      if (g_pvQuery.at(iWhichQuery)->_spectrumInfoInternal.iScanNumber == iScanNumber)
-         break;
-   }
-
-   if (iWhichQuery >= (int)g_pvQuery.size())
-       return false;
-
-   Query* pQuery = g_pvQuery.at(iWhichQuery);
-
-   if (pQuery->iHistogramCount < DECOY_SIZE)
-   {
-      if (!GenerateXcorrDecoys(iWhichQuery))
+      if (!GenerateXcorrDecoys(dNeutralPepMass, iMatchPepCount, hist_pep, iScanNumber))
       {
-          return false;
+         return false;
       }
    }
 
-   LinearRegression(piHistogram, &dSlope, &dIntercept, &iMaxCorr, &iStartCorr, &iNextCorr);
-
-   pQuery->fPar[0] = (float)dIntercept;  // b
-   pQuery->fPar[1] = (float)dSlope    ;  // m
-   pQuery->fPar[2] = (float)iStartCorr;
-   pQuery->fPar[3] = (float)iNextCorr;
-   pQuery->siMaxXcorr = (short)iMaxCorr;
-
-   dSlope *= 10.0; // Used in pow() function so do multiply outside of for loop.
-
-   int iLoopCount;
-
-   iLoopCount = max(pQuery->iMatchPeptideCount, pQuery->iDecoyMatchPeptideCount);
-
-   if (iLoopCount > g_staticParams.options.iNumPeptideOutputLines)
-      iLoopCount = g_staticParams.options.iNumPeptideOutputLines;
-
-   for (i=0; i<iLoopCount; i++)
-   {
-      if (dSlope >= 0.0)
-      {
-         if (i<pQuery->iMatchPeptideCount)
-            pQuery->_pResults[i].dExpect = 999.0;
-         if (i<pQuery->iDecoyMatchPeptideCount)
-            pQuery->_pDecoys[i].dExpect = 999.0;
-      }
-      else
-      {
-         double dExpect;
-
-         if (i<pQuery->iMatchPeptideCount)
-         {
-            dExpect = pow(10.0, dSlope * pQuery->_pResults[i].fXcorr + dIntercept);
-            if (dExpect > 999.0)
-               dExpect = 999.0;
-
-/*
-            // Sanity constraints - no low e-values allowed for xcorr < 1.0.
-            // I'll admit xcorr < 1.0 is an arbitrary cutoff but something is needed.
-            if (dExpect < 1.0)
-            {
-               if (pQuery->_pResults[i].fXcorr < 1.0)
-                  dExpect = 10.0;
-            }
-*/
-
-            pQuery->_pResults[i].dExpect = dExpect;
-         }
-
-         if (i<pQuery->iDecoyMatchPeptideCount)
-         {
-            dExpect = pow(10.0, dSlope * pQuery->_pDecoys[i].fXcorr + dIntercept);
-            if (dExpect > 999.0)
-               dExpect = 999.0;
-
-/*
-            if (dExpect < 1.0)
-            {
-               if (pQuery->_pDecoys[i].fXcorr < 1.0)
-                  dExpect = 10.0;
-            }
-*/
-
-            pQuery->_pDecoys[i].dExpect = dExpect;
-         }
-      }
-   }
+   LinearRegression(hist_pep, dSlope, dIntercept, &iMaxCorr, &iStartCorr, &iNextCorr);
+   *dSlope *= 10.0; // Used in pow() function so do multiply outside of for loop.
 
    return true;
 }
 
+
 void xlinkx_Search::LinearRegression(int *piHistogram,
-                                         double *slope,
-                                         double *intercept,
-                                         int *iMaxXcorr,
-                                         int *iStartXcorr,
-                                         int *iNextXcorr)
+                                     double *slope,
+                                     double *intercept,
+                                     int *iMaxXcorr,
+                                     int *iStartXcorr,
+                                     int *iNextXcorr)
 {
    double Sx, Sxy;      // Sum of square distances.
    double Mx, My;       // means
@@ -209,7 +137,7 @@ void xlinkx_Search::LinearRegression(int *piHistogram,
    }
    iMaxCorr = i;
 
-   iNextCorr =0;
+   iNextCorr = 0;
    for (i=0; i<iMaxCorr; i++)
    {
       if (piHistogram[i]==0)
@@ -231,6 +159,7 @@ void xlinkx_Search::LinearRegression(int *piHistogram,
          iNextCorr = iMaxCorr-2;
    }
 
+
    // Create cummulative distribution function from iNextCorr down, skipping the outliers.
    dCummulative[iNextCorr] = piHistogram[iNextCorr];
    for (i=iNextCorr-1; i>=0; i--)
@@ -247,7 +176,7 @@ void xlinkx_Search::LinearRegression(int *piHistogram,
       dCummulative[i] = log10(dCummulative[i]);
    }
 
-   iStartCorr = 0;
+   iStartCorr = 1;
    if (iNextCorr >= 30)
       iStartCorr = (int)(iNextCorr - iNextCorr*0.25);
    else if (iNextCorr >= 15)
@@ -318,136 +247,124 @@ void xlinkx_Search::LinearRegression(int *piHistogram,
 
 // Make synthetic decoy spectra to fill out correlation histogram by going
 // through each candidate peptide and rotating spectra in m/z space.
-bool xlinkx_Search::GenerateXcorrDecoys(int iWhichQuery)
+bool xlinkx_Search::GenerateXcorrDecoys(double dNeutralPepMass,
+                                        int iMatchPepCount,
+                                        int *hist_pep,
+                                        int iScanNumber)
 {
    int i;
    int ii;
    int j;
-   int k;
+   int bin_num;
    int iMaxFragCharge;
    int ctCharge;
    double dBion;
    double dYion;
    double dFastXcorr;
-   double dFragmentIonMass = 0.0;
+   double dFragmentIonMass;
 
    int *piHistogram;
 
    int iFragmentIonMass;
+   int iWhichQuery;
 
-   Query* pQuery = g_pvQuery.at(iWhichQuery);
-
-   piHistogram = pQuery->iXcorrHistogram;
-
-   iMaxFragCharge = pQuery->_spectrumInfoInternal.iMaxFragCharge;
-
-   // DECOY_SIZE is the minimum # of decoys required or else this function is
-   // called.  So need generate iLoopMax more xcorr scores for the histogram.
-   int iLoopMax = DECOY_SIZE - pQuery->iHistogramCount;
-   bool bDecoy;
-   int iLastEntry;
-
-   // Determine if using target or decoy peptides to rotate to fill out histogram.
-   if (pQuery->iMatchPeptideCount >= pQuery->iDecoyMatchPeptideCount)
+   for (iWhichQuery=0; iWhichQuery<(int)g_pvQuery.size(); iWhichQuery++)
    {
-      iLastEntry = pQuery->iMatchPeptideCount;
-      bDecoy = false;
+      if (g_pvQuery.at(iWhichQuery)->_spectrumInfoInternal.iScanNumber == iScanNumber)
+         break;
    }
-   else
+   if (iWhichQuery < (int)g_pvQuery.size() && g_pvQuery.at(iWhichQuery)->_spectrumInfoInternal.iScanNumber == iScanNumber)
    {
-      iLastEntry = pQuery->iDecoyMatchPeptideCount;
-      bDecoy = true;
-   }
+      Query* pQuery = g_pvQuery.at(iWhichQuery);
 
-   if (iLastEntry > g_staticParams.options.iNumStored)
-      iLastEntry = g_staticParams.options.iNumStored;
+      piHistogram = hist_pep;
 
-   j=0;
-   for (i=0; i<iLoopMax; i++)  // iterate through required # decoys
-   {
-      dFastXcorr = 0.0;
+      //iMaxFragCharge = pQuery->_spectrumInfoInternal.iMaxFragCharge;
+      iMaxFragCharge = 1;  //FIX only considering 1+ charges now
 
-      for (j=0; j<MAX_DECOY_PEP_LEN; j++)  // iterate through decoy fragment ions
+      // DECOY_SIZE is the minimum # of decoys required or else this function is
+      // called.  So need generate iLoopMax more xcorr scores for the histogram.
+      int iLoopMax = DECOY_SIZE - iMatchPepCount;
+      int iLastEntry;
+
+      iLastEntry = iMatchPepCount;
+
+      if (iLastEntry > g_staticParams.options.iNumStored)
+         iLastEntry = g_staticParams.options.iNumStored;
+
+      j=0;
+      for (i=0; i<iLoopMax; i++)  // iterate through required # decoys
       {
-         dBion = decoyIons[i].pdIonsN[j];
-         dYion = decoyIons[i].pdIonsC[j];
+         dFastXcorr = 0.0;
 
-         for (ii=0; ii<g_staticParams.ionInformation.iNumIonSeriesUsed; ii++)
+         for (j=0; j<MAX_DECOY_PEP_LEN; j++)  // iterate through decoy fragment ions
          {
-            int iWhichIonSeries = g_staticParams.ionInformation.piSelectedIonSeries[ii];
+            dBion = decoyIons[i].pdIonsN[j];
+            dYion = decoyIons[i].pdIonsC[j];
 
-            dFragmentIonMass =  0.0;
-            switch (iWhichIonSeries)
+            for (ii=0; ii<2; ii++)
             {
-               case ION_SERIES_A:
-                  dFragmentIonMass = dBion - g_staticParams.massUtility.dCO;
-                  break;
-               case ION_SERIES_B:
-                  dFragmentIonMass = dBion;
-                  break;
-               case ION_SERIES_C:
-                  dFragmentIonMass = dBion + g_staticParams.massUtility.dNH3;
-                  break;
-               case ION_SERIES_X:
-                  dFragmentIonMass = dYion + g_staticParams.massUtility.dCOminusH2;
-                  break;
-               case ION_SERIES_Y:
-                  dFragmentIonMass = dYion;
-                  break;
-               case ION_SERIES_Z:
-                  dFragmentIonMass = dYion - g_staticParams.massUtility.dNH2;
-                  break;
-            }
-
-            for (ctCharge=1; ctCharge<=iMaxFragCharge; ctCharge++)
-            {
-               dFragmentIonMass = (dFragmentIonMass + (ctCharge-1)*PROTON_MASS)/ctCharge;
-
-               if (dFragmentIonMass < pQuery->_pepMassInfo.dExpPepMass)
+               dFragmentIonMass =  0.0;
+               switch (ii)
                {
-                  iFragmentIonMass = BIN(dFragmentIonMass);
+                  case 0:
+                     dFragmentIonMass = dBion;
+                     break;
+                  case 1:
+                     dFragmentIonMass = dYion;
+                     break;
+               }
 
-                  if (iFragmentIonMass < pQuery->_spectrumInfoInternal.iArraySize && iFragmentIonMass >= 0)
+               for (ctCharge=1; ctCharge<=iMaxFragCharge; ctCharge++)
+               {
+                  dFragmentIonMass = (dFragmentIonMass + (ctCharge-1)*PROTON_MASS)/ctCharge;
+
+                  if (dFragmentIonMass < dNeutralPepMass)
                   {
-                     int x = iFragmentIonMass / SPARSE_MATRIX_SIZE;
-                     if (pQuery->ppfSparseFastXcorrData[x]!=NULL)
+                     iFragmentIonMass = BIN(dFragmentIonMass);
+
+                     if (iFragmentIonMass < pQuery->_spectrumInfoInternal.iArraySize && iFragmentIonMass >= 0)
                      {
-                        int y = iFragmentIonMass - (x*SPARSE_MATRIX_SIZE);
-                        dFastXcorr += pQuery->ppfSparseFastXcorrData[x][y];
+                        int x = iFragmentIonMass / SPARSE_MATRIX_SIZE;
+                        if (pQuery->ppfSparseFastXcorrData[x]!=NULL)
+                        {
+                           int y = iFragmentIonMass - (x*SPARSE_MATRIX_SIZE);
+                           dFastXcorr += pQuery->ppfSparseFastXcorrData[x][y];
+                        }
+                     }
+                     else
+                     {
+                        char szErrorMsg[256];
+                        sprintf(szErrorMsg,  " Error - XCORR DECOY: dFragMass %f, iFragMass %d, ArraySize %d, InputMass %f, scan %d, z %d",
+                              dFragmentIonMass,
+                              iFragmentIonMass,
+                              pQuery->_spectrumInfoInternal.iArraySize,
+                              pQuery->_pepMassInfo.dExpPepMass,
+                              pQuery->_spectrumInfoInternal.iScanNumber,
+                              ctCharge);
+
+                        string strErrorMsg(szErrorMsg);
+                        logerr(szErrorMsg);
+                        return false;
                      }
                   }
-                  else
-                  {
-                     char szErrorMsg[256];
-                     sprintf(szErrorMsg,  " Error - XCORR DECOY: dFragMass %f, iFragMass %d, ArraySize %d, InputMass %f, scan %d, z %d",
-                           dFragmentIonMass,
-                           iFragmentIonMass,
-                           pQuery->_spectrumInfoInternal.iArraySize,
-                           pQuery->_pepMassInfo.dExpPepMass,
-                           pQuery->_spectrumInfoInternal.iScanNumber,
-                           ctCharge);
 
-                     string strErrorMsg(szErrorMsg);
-                     logerr(szErrorMsg);
-                     return false;
-                  }
                }
             }
          }
+
+         dFastXcorr *= 0.005;
+         bin_num = xlinkx_get_histogram_bin_num(dFastXcorr);
+         piHistogram[bin_num] += 1;
       }
 
-      k = (int)(dFastXcorr*10.0*0.005 + 0.5);  // 10 for histogram, 0.005=50/10000.
-
-      if (k < 0)
-         k = 0;
-      else if (k >= HISTO_SIZE)
-         k = HISTO_SIZE-1;
-
-      piHistogram[k] += 1;
+      return true;
    }
 
-   return true;
+   return false;
+
 }
+
 
 void xlinkx_Search::SearchForPeptides(char *szMZXML,
                                       const char *protein_file,
@@ -458,7 +375,12 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
    int ii;
    double dTolerance;
    double dPPM = 20.0;  // use 20ppm tolerance for now
-   int hist_pep1[NUM_BINS], hist_pep2[NUM_BINS], hist_combined[NUM_BINS], num_pep1, num_pep2;
+   int hist_pep1[NUM_BINS],
+       hist_pep2[NUM_BINS],
+       hist_combined[NUM_BINS],
+       num_pep1,
+       num_pep2,
+       num_pep_combined;
 
 #define LYSINE_MOD 197.032422
 
@@ -484,12 +406,11 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
 //if (pvSpectrumList.at(i).iScanNumber == 24686)
       for (ii=0; ii<(int)pvSpectrumList.at(i).pvdPrecursors.size(); ii++)
       {
+         for (int j = 0; j < NUM_BINS; j++)
+            hist_pep1[j] = hist_pep2[j] = hist_combined[j] = 0;
 
-         for (int i = 0; i < NUM_BINS; i++) hist_pep1[i] = hist_pep2[i] = hist_combined[i] = 0;
-         num_pep1 = num_pep2 = 0;
-         // JKE: need to move load and preprocess spectra here
-         // Need charge states for mass1 & mass2 to exclude peaks from spectra
-         // before processing.
+         num_pep1 = num_pep2 = num_pep_combined = 0;
+
          double dMZ1 =  (pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1
                + pvSpectrumList.at(i).pvdPrecursors.at(ii).iCharge1 * PROTON_MASS)/ pvSpectrumList.at(i).pvdPrecursors.at(ii).iCharge1;
          double dMZ2 =  (pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2
@@ -526,7 +447,7 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
 
          dTolerance = (dPPM * pep_mass1) / 1e6;
          //vector<string*> *peptides = phdp->phd_get_peptides_ofmass(pep_mass1);
-         vector<string*> *peptides1 = phdp->phd_get_peptides_ofmass_tolerance(pep_mass1, 1);
+         vector<string*> *peptides1 = phdp->phd_get_peptides_ofmass_tolerance(pep_mass1, 1.0);
          for (string *peptide : *peptides1)
          {
             char *szPeptide = new char[(*peptide).length() + 1];
@@ -540,15 +461,34 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
                dXcorr = XcorrScore(szPeptide, pvSpectrumList.at(i).iScanNumber);
 
             int bin_num = xlinkx_get_histogram_bin_num(dXcorr);
+
             hist_pep1[bin_num]++;
             insert_pep_pq(toppep1, xcorrPep1, szPeptide, dXcorr);
             num_pep1++;
          }
 
+         double dSlope;
+         double dIntercept;
+         double dExpect;
+
+         // return dSlope and dIntercept for histogram
+         CalculateEValue(hist_pep1, num_pep1, &dSlope, &dIntercept,
+               pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1, pvSpectrumList.at(i).iScanNumber);
+
          xlinkx_print_histogram(hist_pep1);
          cout << "Top "<< NUMPEPTIDES << " pep1 peptides for this scan are " << endl;
 
-         for (int li = 0 ; li < NUMPEPTIDES; li++) cout << "pep1_top: " << ((toppep1[li] != NULL)? toppep1[li]: "") << " xcorr " << xcorrPep1[li] << endl;
+         for (int li = 0 ; li < NUMPEPTIDES; li++)
+         {
+            if (toppep1[li] != NULL)
+            {
+               if (dSlope > 0)
+                  dExpect = 999;
+               else
+                  dExpect = pow(10.0, dSlope * xcorrPep1[li] + dIntercept);
+               cout << "pep1_top: " << toppep1[li] << " xcorr " << xcorrPep1[li] << " expect " << dExpect << endl;
+            }
+         }
 
          double pep_mass2 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 - LYSINE_MOD - g_staticParams.precalcMasses.dOH2;
          cout << "After Lysine residue reduction the peptide of mass " << pep_mass2 << " are being extracted";
@@ -563,7 +503,7 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
 
          dTolerance = (dPPM * pep_mass2) / 1e6;
          //peptides = phdp->phd_get_peptides_ofmass(pep_mass2);
-         vector<string*> *peptides2 = phdp->phd_get_peptides_ofmass_tolerance(pep_mass2, 1);
+         vector<string*> *peptides2 = phdp->phd_get_peptides_ofmass_tolerance(pep_mass2, 1.0);
          for (string *peptide : *peptides2)
          {
             char *szPeptide = new char[(*peptide).length() + 1];
@@ -582,11 +522,23 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
             num_pep2++;
          }
 
+         CalculateEValue(hist_pep2, num_pep2, &dSlope, &dIntercept,
+               pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2, pvSpectrumList.at(i).iScanNumber);
+
          xlinkx_print_histogram(hist_pep2);
          cout << "Top "<< NUMPEPTIDES << " pep2 peptides for this scan are " << endl;
 
          for (int li = 0; li < NUMPEPTIDES; li++)
-            cout << "pep2_top: " << (toppep2[li] != NULL? toppep2[li] : "") << " xcorr " << xcorrPep2[li] << endl;
+         {
+            if (toppep2[li] != NULL)
+            {
+               if (dSlope > 0)
+                  dExpect = 999;
+               else
+                  dExpect = pow(10.0, dSlope * xcorrPep2[li] + dIntercept);
+               cout << "pep2_top: " << toppep2[li] << " xcorr " << xcorrPep2[li] << " expect " << dExpect << endl;
+            }
+         }
 
          cout << "Size of peptide1 list is " << num_pep1 << " and the size of peptide2 list is " << num_pep2 << endl;
          // Computing the combined histogram of xcorr   
@@ -606,8 +558,12 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
 
                    int bin_num = xlinkx_get_histogram_bin_num(dXcorr);
                    hist_combined[bin_num]++;
+                   num_pep_combined++;
                }
          }
+
+         CalculateEValue(hist_combined, num_pep_combined, &dSlope, &dIntercept,
+               pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2, pvSpectrumList.at(i).iScanNumber);
 
          xlinkx_print_histogram(hist_combined);
       }
@@ -630,7 +586,7 @@ double xlinkx_Search::XcorrScore(const char *szPeptide,
          break;
    }
 
-   if (iWhichQuery < (int)g_pvQuery.size())
+   if (iWhichQuery < (int)g_pvQuery.size() && g_pvQuery.at(iWhichQuery)->_spectrumInfoInternal.iScanNumber == iScanNumber)
    {
       int bin, x, y;
       int iMax = g_pvQuery.at(iWhichQuery)->_spectrumInfoInternal.iArraySize/SPARSE_MATRIX_SIZE + 1;
