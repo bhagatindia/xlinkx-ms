@@ -54,8 +54,10 @@ void insert_pep_pq(char *pepArray[], float xcorrArray[], char *ins_pep, float in
          // Swap
          float temp = xcorrArray[i];
          char *temp_pep = pepArray[i];
-         xcorrArray[i] = xcorrArray[i-1]; pepArray[i] = pepArray[i-1];
-         xcorrArray[i-1] = temp; pepArray[i-1] = temp_pep;
+         xcorrArray[i] = xcorrArray[i-1];
+         pepArray[i] = pepArray[i-1];
+         xcorrArray[i-1] = temp;
+         pepArray[i-1] = temp_pep;
       } else break;
    }
 }
@@ -384,8 +386,8 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
 
 #define LYSINE_MOD 197.032422
 
-   char *toppep1[NUMPEPTIDES], *toppep2[NUMPEPTIDES];
-   float xcorrPep1[NUMPEPTIDES], xcorrPep2[NUMPEPTIDES];
+   char *toppep1[NUMPEPTIDES], *toppep2[NUMPEPTIDES], *toppepcombined[NUMPEPTIDES];
+   float xcorrPep1[NUMPEPTIDES], xcorrPep2[NUMPEPTIDES], xcorrCombined[NUMPEPTIDES];
 
    MSReader mstReader;
    Spectrum mstSpectrum;
@@ -403,7 +405,7 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
 
    for (i=0; i<(int)pvSpectrumList.size(); i++)
    {
-//if (pvSpectrumList.at(i).iScanNumber == 24686)
+if (pvSpectrumList.at(i).iScanNumber == 24686)
       for (ii=0; ii<(int)pvSpectrumList.at(i).pvdPrecursors.size(); ii++)
       {
          for (int j = 0; j < NUM_BINS; j++)
@@ -419,8 +421,8 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
          xlinkx_preprocess::LoadAndPreprocessSpectra(mstReader, pvSpectrumList.at(i).iScanNumber, dMZ1, dMZ2);
  
          for (int li = 0; li < NUMPEPTIDES; li++) {
-            xcorrPep1[li] = xcorrPep2[li] = -99999;
-            toppep1[li] = toppep2[li] = NULL;
+            xcorrPep1[li] = xcorrPep2[li] = xcorrCombined[li] = -99999;
+            toppep1[li] = toppep2[li] = toppepcombined[li] = NULL;
          }
 
          printf("Scan %d, retrieving peptides of mass %0.4f (%d+ %0.4f) and %0.4f (%d+ %0.4f)\n",
@@ -548,24 +550,57 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
             // sanity check to ignore peptides w/unknown AA residues
             // should not be needed now that this is addressed in the hash building
             
-               dXcorr1 = XcorrScore(peptide1->c_str(), pvSpectrumList.at(i).iScanNumber);
+            dXcorr1 = XcorrScore(peptide1->c_str(), pvSpectrumList.at(i).iScanNumber);
 
-               for (string *peptide2 : *peptides2)
-               {
-                   dXcorr2 = XcorrScore(peptide2->c_str(), pvSpectrumList.at(i).iScanNumber);
+            for (string *peptide2 : *peptides2)
+            {
+               dXcorr2 = XcorrScore(peptide2->c_str(), pvSpectrumList.at(i).iScanNumber);
+               dXcorr = dXcorr1 + dXcorr2;
 
-                   dXcorr = dXcorr1 + dXcorr2;
+               int bin_num = xlinkx_get_histogram_bin_num(dXcorr);
+               hist_combined[bin_num]++;
+               num_pep_combined++;
+            }
 
-                   int bin_num = xlinkx_get_histogram_bin_num(dXcorr);
-                   hist_combined[bin_num]++;
-                   num_pep_combined++;
-               }
          }
 
          CalculateEValue(hist_combined, num_pep_combined, &dSlope, &dIntercept,
                pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2, pvSpectrumList.at(i).iScanNumber);
 
          xlinkx_print_histogram(hist_combined);
+
+         // take all combinations of top pep1 and pep2 and store best
+         for (int x = 0; x< NUMPEPTIDES - 1; x++)
+         {
+            if (toppep1[x] != NULL)
+            {
+               for (int y = 0; y< NUMPEPTIDES - 1; y++)
+               {
+                  if (toppep2[y] != NULL)
+                  {
+                     char combinedPep[512];
+                     sprintf(combinedPep, "%s + %s", toppep1[x], toppep2[y]);
+
+                     double dCombinedXcorr = xcorrPep1[x] + xcorrPep2[y];
+
+                     insert_pep_pq(toppepcombined, xcorrCombined, combinedPep, dCombinedXcorr);
+                  }
+               }
+            }
+         }
+
+         for (int li = 0; li < NUMPEPTIDES; li++)
+         {
+            if (toppepcombined[li] != NULL)
+            {
+               if (dSlope > 0)
+                  dExpect = 999;
+               else
+                  dExpect = pow(10.0, dSlope * xcorrCombined[li] + dIntercept);
+               cout << "combined: " << toppepcombined[li] << " xcorr " << xcorrCombined[li] << " expect " << dExpect << endl;
+            }
+         }
+
       }
    }
 }
