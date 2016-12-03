@@ -38,7 +38,10 @@ void insert_pep_pq(char *pepArray[], float xcorrArray[], char *ins_pep, float in
    // check for duplicates
    for (i = 0; i< NUMPEPTIDES - 1; i++) {
       if (pepArray[i] != NULL) {
-         if (!strcmp(pepArray[i], ins_pep)) return;
+         if (!strcmp(pepArray[i], ins_pep)) {
+             cout << "" << pepArray[i] << " " << ins_pep << " Found duplicate" << endl;
+             return;
+         }
       }
    }
 
@@ -578,7 +581,7 @@ if (pvSpectrumList.at(i).iScanNumber == 24686)
                {
                   if (toppep2[y] != NULL)
                   {
-                     char combinedPep[512];
+                     char *combinedPep = new char[512];
                      sprintf(combinedPep, "%s + %s", toppep1[x], toppep2[y]);
 
                      double dCombinedXcorr = xcorrPep1[x] + xcorrPep2[y];
