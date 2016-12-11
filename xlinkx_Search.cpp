@@ -14,6 +14,8 @@
    limitations under the License.
 */
 
+#include <fstream>      // std::ofstream
+
 #include "Common.h"
 #include "xlinkx.h"
 #include "xlinkx_Search.h"
@@ -374,7 +376,8 @@ bool xlinkx_Search::GenerateXcorrDecoys(double dNeutralPepMass,
 void xlinkx_Search::SearchForPeptides(char *szMZXML,
                                       const char *protein_file,
                                       enzyme_cut_params params,
-                                      const char *pep_hash_file)
+                                      const char *pep_hash_file,
+                                      const char *pep_output_file)
 {
    int i;
    int ii;
@@ -391,6 +394,9 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
 
    char *toppep1[NUMPEPTIDES], *toppep2[NUMPEPTIDES], *toppepcombined[NUMPEPTIDES];
    float xcorrPep1[NUMPEPTIDES], xcorrPep2[NUMPEPTIDES], xcorrCombined[NUMPEPTIDES];
+
+   std::ofstream ofs;
+   ofs.open (pep_output_file, std::ofstream::out | std::ofstream::trunc);
 
    MSReader mstReader;
    Spectrum mstSpectrum;
@@ -438,6 +444,8 @@ if (pvSpectrumList.at(i).iScanNumber == 24686)
                dMZ2);
 
          double pep_mass1 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 - LYSINE_MOD - g_staticParams.precalcMasses.dOH2;
+         double pep_mass2 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 - LYSINE_MOD - g_staticParams.precalcMasses.dOH2;
+         ofs << pvSpectrumList.at(i).iScanNumber << "\t" << pep_mass1 << "\t" << pep_mass2 << endl;
          cout << "After Lysine residue reduction the peptide of mass " << pep_mass1 << " are being extracted";
          cout << " (" << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 << ")" << endl;
          if (pep_mass1 <= 0)
@@ -482,6 +490,7 @@ if (pvSpectrumList.at(i).iScanNumber == 24686)
 
          xlinkx_print_histogram(hist_pep1);
          cout << "Top "<< NUMPEPTIDES << " pep1 peptides for this scan are " << endl;
+         ofs << "Top "<< NUMPEPTIDES << " pep1 peptides of mass " << pep_mass1 << " for this scan are " << endl;
 
          for (int li = 0 ; li < NUMPEPTIDES; li++)
          {
@@ -492,10 +501,10 @@ if (pvSpectrumList.at(i).iScanNumber == 24686)
                else
                   dExpect = pow(10.0, dSlope * xcorrPep1[li] + dIntercept);
                cout << "pep1_top: " << toppep1[li] << " xcorr " << xcorrPep1[li] << " expect " << dExpect << endl;
+               ofs << toppep1[li] << "\t" << xcorrPep1[li] << "\t" << dExpect << "\t" << phdp->phd_calculate_mass_peptide(string(toppep1[li])) << endl;
             }
          }
 
-         double pep_mass2 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 - LYSINE_MOD - g_staticParams.precalcMasses.dOH2;
          cout << "After Lysine residue reduction the peptide of mass " << pep_mass2 << " are being extracted";
          cout << " (" << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 << ")" << endl;
          if (pep_mass2 <= 0)
@@ -532,6 +541,7 @@ if (pvSpectrumList.at(i).iScanNumber == 24686)
 
          xlinkx_print_histogram(hist_pep2);
          cout << "Top "<< NUMPEPTIDES << " pep2 peptides for this scan are " << endl;
+         ofs << "Top "<< NUMPEPTIDES << " pep2 peptides of mass " << pep_mass2 << " for this scan are " << endl;
 
          for (int li = 0; li < NUMPEPTIDES; li++)
          {
@@ -542,6 +552,7 @@ if (pvSpectrumList.at(i).iScanNumber == 24686)
                else
                   dExpect = pow(10.0, dSlope * xcorrPep2[li] + dIntercept);
                cout << "pep2_top: " << toppep2[li] << " xcorr " << xcorrPep2[li] << " expect " << dExpect << endl;
+               ofs << toppep2[li] << "\t" << xcorrPep2[li] << "\t" << dExpect << "\t" << phdp->phd_calculate_mass_peptide(string(toppep2[li])) << endl;
             }
          }
 
@@ -606,6 +617,7 @@ if (pvSpectrumList.at(i).iScanNumber == 24686)
 
       }
    }
+   ofs.close();
 }
 
 

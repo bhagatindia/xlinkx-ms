@@ -22,9 +22,9 @@ int main(int argc, char **argv)
    char szHK2[SIZE_FILE];
    char szMZXML[SIZE_FILE];
 
-   if (argc != 4)
+   if (argc != 5)
    {
-      printf("  USAGE:  xlinkx input.mzXML protein_database.txt peptide_hash_database.txt .\n\n");
+      printf("  USAGE:  xlinkx input.mzXML protein_database.txt peptide_hash_database.txt output_file.txt\n\n");
       printf("  Need to enter mzXML file on command line.\n\n");
       exit(1);
    }
@@ -123,7 +123,7 @@ int main(int argc, char **argv)
    params.postnocut_amino = "P";
 
    // Now open fasta file and get a list of all peptides with masses close to 
-   xlinkx_Search::SearchForPeptides(szMZXML, argv[2], params, argv[3]);
+   xlinkx_Search::SearchForPeptides(szMZXML, argv[2], params, argv[3], argv[4]);
 
    return 0;
 

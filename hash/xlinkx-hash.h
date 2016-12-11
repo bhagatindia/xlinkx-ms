@@ -15,6 +15,7 @@ struct protein_hash_db_ {
    peptide_hash_database::phd_file phd_file_entry;
    vector<string*>* phd_get_peptides_ofmass(int mass);
    vector<string*>* phd_get_peptides_ofmass_tolerance(float mass_given, float tolerance);
+   float phd_calculate_mass_peptide(const string peptide);
 };
 
 typedef protein_hash_db_* protein_hash_db_t;

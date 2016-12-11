@@ -14,7 +14,57 @@ using namespace std;
 
 #include "xlinkx-hash.h"
 
-float phd_calculate_mass_peptide(const string peptide);
+#define MIN_FRAGMENT_MASS 600
+#define MAX_FRAGMENT_MASS 6000
+
+#define MAX_EDGES 30
+
+float pp_amino_acid_mass[MAX_EDGES] = {  
+               71.037113805, //A 
+               99999, //B not there
+               160.03064805, //103.009184505 + 57.021464, //C
+               115.026943065, //D
+               129.042593135, //E
+               147.068413945, //F
+               57.021463735, //G
+               137.058911875, //H
+               113.084064015, //I
+               99999, //J
+               128.094963050, //K
+               113.084064015, //L
+               131.040484645, //M
+               114.042927470, //N
+               132.089877680, //O
+               97.052763875, //P
+               128.058577540, //Q
+               156.101111050, //R
+               87.032028435, //S
+               101.047678505, //T
+               150.95363, //U
+               99.068413945, //V
+               186.079312980, //W
+               99999, //X
+               163.063328575, //Y
+               99999 //Z 
+            };
+
+float protein_hash_db_::phd_calculate_mass_peptide(const string peptide)
+{
+   float mass = 0;
+   for (const char &c : peptide) {
+      mass += pp_amino_acid_mass[c - 'A'];
+   }
+   return mass;
+}
+
+float phd_calculate_mass_peptide(const string peptide)
+{
+   float mass = 0;
+   for (const char &c : peptide) {
+      mass += pp_amino_acid_mass[c - 'A'];
+   }
+   return mass;
+}
 
 vector<string*>* protein_hash_db_::phd_get_peptides_ofmass(int mass)
 {
@@ -65,40 +115,6 @@ vector<string*>* protein_hash_db_::phd_get_peptides_ofmass_tolerance(float mass_
 }
 
 // Define a free function in the library to free the memory
-
-#define MIN_FRAGMENT_MASS 600
-#define MAX_FRAGMENT_MASS 6000
-
-#define MAX_EDGES 30
-
-float pp_amino_acid_mass[MAX_EDGES] = {  
-               71.037113805, //A 
-               99999, //B not there
-               160.03064805, //103.009184505 + 57.021464, //C
-               115.026943065, //D
-               129.042593135, //E
-               147.068413945, //F
-               57.021463735, //G
-               137.058911875, //H
-               113.084064015, //I
-               99999, //J
-               128.094963050, //K
-               113.084064015, //L
-               131.040484645, //M
-               114.042927470, //N
-               132.089877680, //O
-               97.052763875, //P
-               128.058577540, //Q
-               156.101111050, //R
-               87.032028435, //S
-               101.047678505, //T
-               150.95363, //U
-               99.068413945, //V
-               186.079312980, //W
-               99999, //X
-               163.063328575, //Y
-               99999 //Z 
-            };
 
 void phd_split_string(std::string str, std::string splitBy, std::vector<std::string>& tokens)
 {
@@ -376,15 +392,6 @@ void phd_handle_semi_tryptic(enzyme_cut_params params, const string protein_seq,
       }
    }
 
-}
-
-float phd_calculate_mass_peptide(const string peptide)
-{
-   float mass = 0;
-   for (const char &c : peptide) {
-      mass += pp_amino_acid_mass[c - 'A'];
-   }
-   return mass;
 }
 
 void phd_add_peptide_into_hash (range *r, string peptide, 
