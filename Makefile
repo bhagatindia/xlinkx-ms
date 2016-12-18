@@ -2,6 +2,7 @@ CXX = g++
 MSTOOLKIT = mstoolkit
 HASH = hash
 PROTOBUF = protobuf
+HARDKLOR = hardklor
 override CXXFLAGS +=  -g  -std=c++11 -Wall -Wextra -static -Wno-char-subscripts -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D__LINUX__ -I$(MSTOOLKIT)/include
 EXECNAME = xlinkx.exe
 OBJS = xlinkx.o xlinkx_Preprocess.o xlinkx_Search.o xlinkx_MassSpecUtils.o 
@@ -19,6 +20,8 @@ xlinkx.exe: $(OBJS)
 	git submodule init; git submodule update
 	cd $(MSTOOLKIT) ; make lite 
 	cd $(HASH) ; make; 
+	ln -s mstoolkit MSToolkit
+	cd $(HARDKLOR) ; make; 
 	cd $(PROTOBUF) ; git apply ../buf_limit_increase.diff ; ./autogen.sh ; ./configure ; make ; make check; cp src/.libs/libprotobuf.so .
 	${CXX} $(CXXFLAGS) $(OBJS) $(LIBPATHS) $(LIBS) -o ${EXECNAME}
 
