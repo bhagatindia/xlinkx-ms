@@ -7,7 +7,7 @@ EXECNAME = xlinkx.exe
 OBJS = xlinkx.o xlinkx_Preprocess.o xlinkx_Search.o xlinkx_MassSpecUtils.o 
 DEPS = xlinkx.h Common.h xlinkx_Data.h xlinkx_DataInternal.h xlinkx_Preprocess.h xlinkx_MassSpecUtils.h
 
-LIBPATHS = -L$(MSTOOLKIT) -L$(PROTOBUF)/.libs
+LIBPATHS = -L$(MSTOOLKIT) -L$(PROTOBUF)
 LIBS = -lmstoolkitlite -lm -pthread -static $(HASH)/xlinkx-hash.a -lprotobuf 
 ifdef MSYSTEM
    LIBS += -lws2_32
@@ -19,6 +19,7 @@ xlinkx.exe: $(OBJS)
 	git submodule init; git submodule update
 	cd $(MSTOOLKIT) ; make lite 
 	cd $(HASH) ; make; 
+	cd $(PROTOBUF) ; git apply ../buf_limit_increase.diff ; ./autogen.sh ; ./configure ; make ; make check; cp src/.libs/libprotobuf.so .
 	${CXX} $(CXXFLAGS) $(OBJS) $(LIBPATHS) $(LIBS) -o ${EXECNAME}
 
 xlinkx.o: xlinkx.cpp $(DEPS)
@@ -42,3 +43,4 @@ clean:
 	rm -f *.o ${EXECNAME}
 	cd $(MSTOOLKIT) ; make clean
 	cd $(HASH) ; make clean
+	cd $(PROTOBUF); make clean

@@ -41,7 +41,7 @@ void insert_pep_pq(char *pepArray[], float xcorrArray[], char *ins_pep, float in
    for (i = 0; i< NUMPEPTIDES - 1; i++) {
       if (pepArray[i] != NULL) {
          if (!strcmp(pepArray[i], ins_pep)) {
-             cout << "" << pepArray[i] << " " << ins_pep << " Found duplicate" << endl;
+             //cout << "" << pepArray[i] << " " << ins_pep << " Found duplicate" << endl;
              return;
          }
       }
@@ -414,7 +414,7 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
 
    for (i=0; i<(int)pvSpectrumList.size(); i++)
    {
-if (pvSpectrumList.at(i).iScanNumber == 24686)
+//if (pvSpectrumList.at(i).iScanNumber == 24686)
       for (ii=0; ii<(int)pvSpectrumList.at(i).pvdPrecursors.size(); ii++)
       {
          for (int j = 0; j < NUM_BINS; j++)
