@@ -412,6 +412,8 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
    // If PeptideHash not present, generate it now; otherwise open the hash file.
    protein_hash_db_t phdp = phd_retrieve_hash_db(protein_file, params, pep_hash_file);
 
+   ofs << "scan\texp_mass1\texp_mass2\tpeptide1\txcorr1\tevalue1\tcalcmass1\tpeptide2\txcorr2\tevalue2\tcalcmass2\tcombinedxcorr\tcombinedevalue" << endl;
+
    for (i=0; i<(int)pvSpectrumList.size(); i++)
    {
 //if (pvSpectrumList.at(i).iScanNumber == 24686)
@@ -445,12 +447,12 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
 
          double pep_mass1 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 - LYSINE_MOD - g_staticParams.precalcMasses.dOH2;
          double pep_mass2 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 - LYSINE_MOD - g_staticParams.precalcMasses.dOH2;
-         ofs << pvSpectrumList.at(i).iScanNumber << "\t" << pep_mass1 << "\t" << pep_mass2 << endl;
+         ofs << pvSpectrumList.at(i).iScanNumber << "\t" << pep_mass1 << "\t" << pep_mass2;
          cout << "After Lysine residue reduction the peptide of mass " << pep_mass1 << " are being extracted";
          cout << " (" << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 << ")" << endl;
          if (pep_mass1 <= 0)
          {
-            cout << "Peptide mass is coming out to be zero after removing Lysine resideu" << endl;
+            cout << "Peptide mass is coming out to be zero after removing Lysine residue" << endl;
             exit(1);
          }
 
@@ -490,8 +492,8 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
 
          xlinkx_print_histogram(hist_pep1);
          cout << "Top "<< NUMPEPTIDES << " pep1 peptides for this scan are " << endl;
-         ofs << "Top "<< NUMPEPTIDES << " pep1 peptides of mass " << pep_mass1 << " for this scan are " << endl;
 
+         double dExpect1 = 999;;
          for (int li = 0 ; li < NUMPEPTIDES; li++)
          {
             if (toppep1[li] != NULL)
@@ -500,10 +502,18 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
                   dExpect = 999;
                else
                   dExpect = pow(10.0, dSlope * xcorrPep1[li] + dIntercept);
+
+               if (li == 0)
+                  dExpect1 = dExpect;
+
                cout << "pep1_top: " << toppep1[li] << " xcorr " << xcorrPep1[li] << " expect " << dExpect << endl;
-               ofs << toppep1[li] << "\t" << xcorrPep1[li] << "\t" << dExpect << "\t" << phdp->phd_calculate_mass_peptide(string(toppep1[li])) << endl;
             }
          }
+
+         if (toppep1[0] != NULL)
+            ofs << "\t" << toppep1[0] << "\t" << xcorrPep1[0] << "\t" << dExpect1 << "\t" << phdp->phd_calculate_mass_peptide(string(toppep1[0]));
+         else
+            ofs << "\t-\t0\t999\t0";
 
          cout << "After Lysine residue reduction the peptide of mass " << pep_mass2 << " are being extracted";
          cout << " (" << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 << ")" << endl;
@@ -541,7 +551,6 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
 
          xlinkx_print_histogram(hist_pep2);
          cout << "Top "<< NUMPEPTIDES << " pep2 peptides for this scan are " << endl;
-         ofs << "Top "<< NUMPEPTIDES << " pep2 peptides of mass " << pep_mass2 << " for this scan are " << endl;
 
          for (int li = 0; li < NUMPEPTIDES; li++)
          {
@@ -552,9 +561,13 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
                else
                   dExpect = pow(10.0, dSlope * xcorrPep2[li] + dIntercept);
                cout << "pep2_top: " << toppep2[li] << " xcorr " << xcorrPep2[li] << " expect " << dExpect << endl;
-               ofs << toppep2[li] << "\t" << xcorrPep2[li] << "\t" << dExpect << "\t" << phdp->phd_calculate_mass_peptide(string(toppep2[li])) << endl;
             }
          }
+
+         if (toppep2[0] != NULL)
+            ofs << "\t" << toppep2[0] << "\t" << xcorrPep2[0] << "\t" << dExpect1 << "\t" << phdp->phd_calculate_mass_peptide(string(toppep2[0]));
+         else
+            ofs << "\t-\t0\t999\t0";
 
          cout << "Size of peptide1 list is " << num_pep1 << " and the size of peptide2 list is " << num_pep2 << endl;
          // Computing the combined histogram of xcorr   
@@ -612,6 +625,9 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
                else
                   dExpect = pow(10.0, dSlope * xcorrCombined[li] + dIntercept);
                cout << "combined: " << toppepcombined[li] << " xcorr " << xcorrCombined[li] << " expect " << dExpect << endl;
+
+               if (li == 0)
+                  ofs << "\t" << xcorrCombined[li] << "\t" << dExpect << endl;
             }
          }
 
