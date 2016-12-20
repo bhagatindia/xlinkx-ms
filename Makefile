@@ -20,7 +20,7 @@ xlinkx.exe: $(OBJS)
 	git submodule init; git submodule update
 	cd $(MSTOOLKIT) ; make lite 
 	cd $(HASH) ; make; 
-	ln -s mstoolkit MSToolkit
+	rm MSToolkit; ln -s mstoolkit MSToolkit
 	cd $(HARDKLOR) ; make; 
 	cd $(PROTOBUF) ; git apply ../buf_limit_increase.diff ; ./autogen.sh ; ./configure ; make ; make check; cp src/.libs/libprotobuf.so .
 	${CXX} $(CXXFLAGS) $(OBJS) $(LIBPATHS) $(LIBS) -o ${EXECNAME}

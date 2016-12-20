@@ -416,7 +416,6 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
 
    for (i=0; i<(int)pvSpectrumList.size(); i++)
    {
-//if (pvSpectrumList.at(i).iScanNumber == 24686)
       for (ii=0; ii<(int)pvSpectrumList.at(i).pvdPrecursors.size(); ii++)
       {
          for (int j = 0; j < NUM_BINS; j++)
@@ -552,6 +551,7 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
          xlinkx_print_histogram(hist_pep2);
          cout << "Top "<< NUMPEPTIDES << " pep2 peptides for this scan are " << endl;
 
+         dExpect1 = 999;
          for (int li = 0; li < NUMPEPTIDES; li++)
          {
             if (toppep2[li] != NULL)
@@ -560,6 +560,10 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
                   dExpect = 999;
                else
                   dExpect = pow(10.0, dSlope * xcorrPep2[li] + dIntercept);
+
+               if (li == 0)
+                  dExpect1 = dExpect;
+
                cout << "pep2_top: " << toppep2[li] << " xcorr " << xcorrPep2[li] << " expect " << dExpect << endl;
             }
          }
