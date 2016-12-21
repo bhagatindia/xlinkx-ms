@@ -5,11 +5,10 @@ PROTOBUF = protobuf
 HARDKLOR = hardklor
 override CXXFLAGS +=  -g  -std=c++11 -Wall -Wextra -static -Wno-char-subscripts -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D__LINUX__ -I$(MSTOOLKIT)/include
 EXECNAME = xlinkx.exe
-OBJS = xlinkx.o xlinkx_Preprocess.o xlinkx_Search.o xlinkx_MassSpecUtils.o 
+OBJS = xlinkx.o xlinkx_Preprocess.o xlinkx_Search.o xlinkx_MassSpecUtils.o  $(HASH)/xlinkx-hash.o $(HASH)/protein_pep_hash.pb.o
 DEPS = xlinkx.h Common.h xlinkx_Data.h xlinkx_DataInternal.h xlinkx_Preprocess.h xlinkx_MassSpecUtils.h
 
-LIBPATHS = -L$(MSTOOLKIT) -L$(PROTOBUF)
-LIBS = -lmstoolkitlite -lm -pthread -static $(HASH)/xlinkx-hash.a -lprotobuf 
+LIBS = -L$(MSTOOLKIT) -lmstoolkitlite -lm -pthread -L/usr/local/lib -lprotobuf 
 ifdef MSYSTEM
    LIBS += -lws2_32
 endif
@@ -22,8 +21,7 @@ xlinkx.exe: $(OBJS)
 	cd $(HASH) ; make; 
 	rm MSToolkit; ln -s mstoolkit MSToolkit
 	cd $(HARDKLOR) ; make; 
-	cd $(PROTOBUF) ; git apply ../buf_limit_increase.diff ; ./autogen.sh ; ./configure ; make ; make check; cp src/.libs/libprotobuf.so .
-	${CXX} $(CXXFLAGS) $(OBJS) $(LIBPATHS) $(LIBS) -o ${EXECNAME}
+	${CXX} $(CXXFLAGS) $(OBJS) $(LIBS) -o ${EXECNAME}
 
 xlinkx.o: xlinkx.cpp $(DEPS)
 	cd $(HASH) ; make; 

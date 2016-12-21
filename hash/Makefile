@@ -9,7 +9,7 @@ xlinkx-hash: protein_pep_hash.proto xlinkx-hash.cpp
 	ar rvs xlinkx-hash.a xlinkx-hash.o protein_pep_hash.pb.o
 
 phd-main:
-	g++   -g -std=c++11 phd_main.cpp xlinkx-hash.a -lprotobuf -o phd-main
+	g++   -g -std=c++11 phd_main.cpp xlinkx-hash.a -L/usr/local/lib -lprotobuf -o phd-main
 
 clean:
 	rm protein_pep_hash.pb.cc protein_pep_hash.pb.h xlinkx-hash.o xlinkx-hash.a protein_pep_hash.pb.o phd-main
