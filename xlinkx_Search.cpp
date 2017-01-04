@@ -414,6 +414,12 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
 
    ofs << "scan\texp_mass1\texp_mass2\tpeptide1\txcorr1\tevalue1\tcalcmass1\tpeptide2\txcorr2\tevalue2\tcalcmass2\tcombinedxcorr\tcombinedevalue" << endl;
 
+   if (!g_staticParams.options.bVerboseOutput)
+   {
+      printf("percent complete: ");
+      fflush(stdout);
+   }
+
    for (i=0; i<(int)pvSpectrumList.size(); i++)
    {
       for (ii=0; ii<(int)pvSpectrumList.at(i).pvdPrecursors.size(); ii++)
@@ -435,33 +441,47 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
             toppep1[li] = toppep2[li] = toppepcombined[li] = NULL;
          }
 
-         printf("Scan %d, retrieving peptides of mass %0.4f (%d+ %0.4f) and %0.4f (%d+ %0.4f)\n",
-               pvSpectrumList.at(i).iScanNumber,
-               pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1,
-               pvSpectrumList.at(i).pvdPrecursors.at(ii).iCharge1,
-               dMZ1,
-               pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2,
-               pvSpectrumList.at(i).pvdPrecursors.at(ii).iCharge2,
-               dMZ2);
+         if (g_staticParams.options.bVerboseOutput)
+         {
+            printf("Scan %d, retrieving peptides of mass %0.4f (%d+ %0.4f) and %0.4f (%d+ %0.4f)\n",
+                  pvSpectrumList.at(i).iScanNumber,
+                  pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1,
+                  pvSpectrumList.at(i).pvdPrecursors.at(ii).iCharge1,
+                  dMZ1,
+                  pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2,
+                  pvSpectrumList.at(i).pvdPrecursors.at(ii).iCharge2,
+                  dMZ2);
+         }
 
          double pep_mass1 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 - LYSINE_MOD - g_staticParams.precalcMasses.dOH2;
          double pep_mass2 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 - LYSINE_MOD - g_staticParams.precalcMasses.dOH2;
          ofs << pvSpectrumList.at(i).iScanNumber << "\t" << pep_mass1 << "\t" << pep_mass2;
-         cout << "After Lysine residue reduction the peptide of mass " << pep_mass1 << " are being extracted";
-         cout << " (" << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 << ")" << endl;
          if (pep_mass1 <= 0)
          {
-            cout << "Peptide mass is coming out to be zero after removing Lysine residue" << endl;
+            cout << "Peptide mass1 is coming out to be zero after removing Lysine residue" << endl;
             exit(1);
          }
 
-         double dXcorr = 0.0;
-         double dXcorr1 = 0.0;
-         double dXcorr2 = 0.0;
+         if (pep_mass2 <= 0)
+         {
+            cout << "Peptide mass2 is coming out to be zero after removing Lysine residue" << endl;
+            exit(1);
+         }
 
+
+         double dXcorr = 0.0;
+         vector<double> vdXcorr_pep1;
+         vector<double> vdXcorr_pep2;
+
+         if (g_staticParams.options.bVerboseOutput)
+         {
+            cout << "After Lysine residue reduction the peptide of mass " << pep_mass1 << " are being extracted";
+            cout << " (" << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 << ")" << endl;
+         }
          dTolerance = (dPPM * pep_mass1) / 1e6;
          //vector<string*> *peptides = phdp->phd_get_peptides_ofmass(pep_mass1);
          vector<string*> *peptides1 = phdp->phd_get_peptides_ofmass_tolerance(pep_mass1, 1.0);
+
          for (string *peptide : *peptides1)
          {
             char *szPeptide = new char[(*peptide).length() + 1];
@@ -474,11 +494,43 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
             else
                dXcorr = XcorrScore(szPeptide, pvSpectrumList.at(i).iScanNumber);
 
-            int bin_num = xlinkx_get_histogram_bin_num(dXcorr);
+            vdXcorr_pep1.push_back(dXcorr);
 
-            hist_pep1[bin_num]++;
+            hist_pep1[xlinkx_get_histogram_bin_num(dXcorr)]++;
             insert_pep_pq(toppep1, xcorrPep1, szPeptide, dXcorr);
             num_pep1++;
+            if (g_staticParams.options.bVerboseOutput)
+               cout << "pep1: " << *peptide << "  xcorr " << dXcorr << endl;
+         }
+
+         if (g_staticParams.options.bVerboseOutput)
+         {
+            cout << "After Lysine residue reduction the peptide of mass " << pep_mass2 << " are being extracted";
+            cout << " (" << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 << ")" << endl;
+         }
+         dTolerance = (dPPM * pep_mass2) / 1e6;
+         //peptides = phdp->phd_get_peptides_ofmass(pep_mass2);
+         vector<string*> *peptides2 = phdp->phd_get_peptides_ofmass_tolerance(pep_mass2, 1.0);
+
+         for (string *peptide : *peptides2)
+         {
+            char *szPeptide = new char[(*peptide).length() + 1];
+            strcpy(szPeptide, (*peptide).c_str() );
+
+            // sanity check to ignore peptides w/unknown AA residues
+            // should not be needed now that this is addressed in the hash building
+            if (strchr(szPeptide, 'B') || strchr(szPeptide, 'X') || strchr(szPeptide, 'J') || strchr(szPeptide, 'Z'))
+               dXcorr = 0.0;
+            else
+               dXcorr = XcorrScore(szPeptide, pvSpectrumList.at(i).iScanNumber);
+
+            vdXcorr_pep2.push_back(dXcorr);
+
+            hist_pep2[xlinkx_get_histogram_bin_num(dXcorr)]++;
+            insert_pep_pq(toppep2, xcorrPep2, szPeptide, dXcorr);
+            num_pep2++;
+            if (g_staticParams.options.bVerboseOutput)
+               cout << "pep2: " << *peptide << "  xcorr " << dXcorr << endl;
          }
 
          double dSlope;
@@ -489,8 +541,11 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
          CalculateEValue(hist_pep1, num_pep1, &dSlope, &dIntercept,
                pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1, pvSpectrumList.at(i).iScanNumber);
 
-         xlinkx_print_histogram(hist_pep1);
-         cout << "Top "<< NUMPEPTIDES << " pep1 peptides for this scan are " << endl;
+         if (g_staticParams.options.bVerboseOutput)
+         {
+            xlinkx_print_histogram(hist_pep1);
+            cout << "Top "<< NUMPEPTIDES << " pep1 peptides for this scan are " << endl;
+         }
 
          double dExpect1 = 999;;
          for (int li = 0 ; li < NUMPEPTIDES; li++)
@@ -505,7 +560,8 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
                if (li == 0)
                   dExpect1 = dExpect;
 
-               cout << "pep1_top: " << toppep1[li] << " xcorr " << xcorrPep1[li] << " expect " << dExpect << endl;
+               if (g_staticParams.options.bVerboseOutput)
+                  cout << "pep1_top: " << toppep1[li] << " xcorr " << xcorrPep1[li] << " expect " << dExpect << endl;
             }
          }
 
@@ -514,43 +570,15 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
          else
             ofs << "\t-\t0\t999\t0";
 
-         cout << "After Lysine residue reduction the peptide of mass " << pep_mass2 << " are being extracted";
-         cout << " (" << pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 << ")" << endl;
-         if (pep_mass2 <= 0)
-         {
-            cout << "Peptide mass is coming out to be less than or equal to zero after removing lysine residue" << endl;
-            exit(1);
-         }
-
-//pep_mass2 -= 1;  // account for weird 58 mod on Cysteine for this data
-
-         dTolerance = (dPPM * pep_mass2) / 1e6;
-         //peptides = phdp->phd_get_peptides_ofmass(pep_mass2);
-         vector<string*> *peptides2 = phdp->phd_get_peptides_ofmass_tolerance(pep_mass2, 1.0);
-         for (string *peptide : *peptides2)
-         {
-            char *szPeptide = new char[(*peptide).length() + 1];
-            strcpy(szPeptide, (*peptide).c_str() );
-
-            // sanity check to ignore peptides w/unknown AA residues
-            // should not be needed now that this is addressed in the hash building
-            if (strchr(szPeptide, 'B') || strchr(szPeptide, 'X') || strchr(szPeptide, 'J') || strchr(szPeptide, 'Z'))
-               dXcorr = 0.0;
-            else
-               dXcorr = XcorrScore(szPeptide, pvSpectrumList.at(i).iScanNumber);
-
-            hist_pep2[xlinkx_get_histogram_bin_num(dXcorr)]++;
-//          cout << "pep2: " << *peptide << "  xcorr " << dXcorr << endl;
-            insert_pep_pq(toppep2, xcorrPep2, szPeptide, dXcorr);
-            num_pep2++;
-         }
 
          CalculateEValue(hist_pep2, num_pep2, &dSlope, &dIntercept,
                pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2, pvSpectrumList.at(i).iScanNumber);
 
-         xlinkx_print_histogram(hist_pep2);
-         cout << "Top "<< NUMPEPTIDES << " pep2 peptides for this scan are " << endl;
-
+         if (g_staticParams.options.bVerboseOutput)
+         {
+            xlinkx_print_histogram(hist_pep2);
+            cout << "Top "<< NUMPEPTIDES << " pep2 peptides for this scan are " << endl;
+         }
          dExpect1 = 999;
          for (int li = 0; li < NUMPEPTIDES; li++)
          {
@@ -564,7 +592,8 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
                if (li == 0)
                   dExpect1 = dExpect;
 
-               cout << "pep2_top: " << toppep2[li] << " xcorr " << xcorrPep2[li] << " expect " << dExpect << endl;
+               if (g_staticParams.options.bVerboseOutput)
+                  cout << "pep2_top: " << toppep2[li] << " xcorr " << xcorrPep2[li] << " expect " << dExpect << endl;
             }
          }
 
@@ -573,32 +602,26 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
          else
             ofs << "\t-\t0\t999\t0";
 
-         cout << "Size of peptide1 list is " << num_pep1 << " and the size of peptide2 list is " << num_pep2 << endl;
-         // Computing the combined histogram of xcorr   
-         for (string *peptide1 : *peptides1)
+         if (g_staticParams.options.bVerboseOutput)
+            cout << "Size of peptide1 list is " << num_pep1 << " and the size of peptide2 list is " << num_pep2 << endl;
+
+         // Compute histogram of combined scores;
+         for (int x=0; x<NUM_BINS; x++)
+            hist_combined[x] = 0;
+ 
+         for (vector<double>::iterator x = vdXcorr_pep1.begin(); x != vdXcorr_pep1.end(); ++x)
          {
-
-            // sanity check to ignore peptides w/unknown AA residues
-            // should not be needed now that this is addressed in the hash building
-            
-            dXcorr1 = XcorrScore(peptide1->c_str(), pvSpectrumList.at(i).iScanNumber);
-
-            for (string *peptide2 : *peptides2)
+            for (vector<double>::iterator y = vdXcorr_pep2.begin(); y != vdXcorr_pep2.end(); ++y)
             {
-               dXcorr2 = XcorrScore(peptide2->c_str(), pvSpectrumList.at(i).iScanNumber);
-               dXcorr = dXcorr1 + dXcorr2;
-
-               int bin_num = xlinkx_get_histogram_bin_num(dXcorr);
-               hist_combined[bin_num]++;
-               num_pep_combined++;
+               hist_combined[xlinkx_get_histogram_bin_num(*x + *y)]++;
             }
-
          }
 
          CalculateEValue(hist_combined, num_pep_combined, &dSlope, &dIntercept,
                pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2, pvSpectrumList.at(i).iScanNumber);
 
-         xlinkx_print_histogram(hist_combined);
+         if (g_staticParams.options.bVerboseOutput)
+            xlinkx_print_histogram(hist_combined);
 
          // take all combinations of top pep1 and pep2 and store best
          for (int x = 0; x< NUMPEPTIDES - 1; x++)
@@ -628,7 +651,9 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
                   dExpect = 999;
                else
                   dExpect = pow(10.0, dSlope * xcorrCombined[li] + dIntercept);
-               cout << "combined: " << toppepcombined[li] << " xcorr " << xcorrCombined[li] << " expect " << dExpect << endl;
+
+               if (g_staticParams.options.bVerboseOutput)
+                  cout << "combined: " << toppepcombined[li] << " xcorr " << xcorrCombined[li] << " expect " << dExpect << endl;
 
                if (li == 0)
                   ofs << "\t" << xcorrCombined[li] << "\t" << dExpect << endl;
@@ -636,7 +661,18 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
          }
 
       }
+
+      if (!g_staticParams.options.bVerboseOutput)
+      {
+         printf("%3d%%", (int)(100.0*i/pvSpectrumList.size()));
+         fflush(stdout);
+         printf("\b\b\b\b");
+      }
    }
+
+   if (!g_staticParams.options.bVerboseOutput)
+     printf("\n\nDone.\n");
+
    ofs.close();
 }
 

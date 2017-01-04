@@ -235,10 +235,10 @@ void READ_HK1(char *szHK)
 
          sscanf(szBuf, "S\t%d\t", &iScanNumber);
 
-         while (iListCt < pvSpectrumList.size() && pvSpectrumList.at(iListCt).iPrecursorScanNumber < iScanNumber)
+         while (iListCt < (int)pvSpectrumList.size() && pvSpectrumList.at(iListCt).iPrecursorScanNumber < iScanNumber)
             iListCt++;
 
-         if (iListCt < pvSpectrumList.size() && pvSpectrumList.at(iListCt).iPrecursorScanNumber == iScanNumber)
+         if (iListCt < (int)pvSpectrumList.size() && pvSpectrumList.at(iListCt).iPrecursorScanNumber == iScanNumber)
          {
             int iMaxIntensity = 0;
 
@@ -330,10 +330,10 @@ void READ_HK2(char *szHK)
 
          sscanf(szBuf, "S\t%d\t", &iScanNumber);
 
-         while (iListCt < pvSpectrumList.size() && pvSpectrumList.at(iListCt).iScanNumber < iScanNumber)
+         while (iListCt < (int)pvSpectrumList.size() && pvSpectrumList.at(iListCt).iScanNumber < iScanNumber)
             iListCt++;
 
-         if (iListCt < pvSpectrumList.size() && pvSpectrumList.at(iListCt).iScanNumber == iScanNumber)
+         if (iListCt < (int)pvSpectrumList.size() && pvSpectrumList.at(iListCt).iScanNumber == iScanNumber)
          {
             int iNumPeaks=0;
 

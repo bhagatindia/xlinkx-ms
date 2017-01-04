@@ -71,7 +71,6 @@ vector<string*>* protein_hash_db_::phd_get_peptides_ofmass(int mass)
    // another memory leak
    vector<string*> *ret = new vector<string*>;
 
-   cout << "Retrieving peptides of mass " << mass << endl;
    peptide_hash_database::phd_peptide_mass pepm = phd_file_entry.phdpepm(mass);
    if (pepm.phdpmass_mass() == mass)
    {
@@ -92,24 +91,21 @@ vector<string*>* protein_hash_db_::phd_get_peptides_ofmass_tolerance(float mass_
    // another memory leak
    vector<string*> *ret = new vector<string*>;
 
-   cout << "Retrieving peptides of mass " << mass_given << " with tolerance "<< tolerance << endl;
-
    int mass_min = floor(mass_given - tolerance);
    int mass_max = ceil(mass_given + tolerance);
 
    for (int mass = mass_min; mass <= mass_max; mass++)
    {
-       cout << "Retrieving peptides of mass " << mass << endl;
-       peptide_hash_database::phd_peptide_mass pepm = phd_file_entry.phdpepm(mass);
-       if (pepm.phdpmass_mass() == mass) {
-           for (int i = 0; i < pepm.phdpmass_peptide_list_size(); i++) {
-               float mass_computed = phd_calculate_mass_peptide(pepm.phdpmass_peptide_list(i).phdpep_sequence());
-               if (PEP_WITHIN_TOLERANCE(mass_given, tolerance, mass_computed)) {
-                   string *str = new string(pepm.phdpmass_peptide_list(i).phdpep_sequence());
-                   ret->push_back(str);
-               }
-           }
-       }
+      peptide_hash_database::phd_peptide_mass pepm = phd_file_entry.phdpepm(mass);
+      if (pepm.phdpmass_mass() == mass) {
+         for (int i = 0; i < pepm.phdpmass_peptide_list_size(); i++) {
+            float mass_computed = phd_calculate_mass_peptide(pepm.phdpmass_peptide_list(i).phdpep_sequence());
+            if (PEP_WITHIN_TOLERANCE(mass_given, tolerance, mass_computed)) {
+               string *str = new string(pepm.phdpmass_peptide_list(i).phdpep_sequence());
+               ret->push_back(str);
+            }
+         }
+      }
    }
    return ret;
 }
@@ -302,11 +298,11 @@ void phd_handle_missed_cleavage(enzyme_cut_params params, const string protein_s
       */
    } else {
       for (range *r : nocut_splits) {
-	 range *r_new = new range;
-	 r_new->start = r->start;
-	 r_new->length = r->length;
-	 r_new->missed = r_new->left = r_new->right = 0;
-	 final_splits.push_back(r_new);
+         range *r_new = new range;
+         r_new->start = r->start;
+         r_new->length = r->length;
+         r_new->missed = r_new->left = r_new->right = 0;
+         final_splits.push_back(r_new);
       }
    }
 
