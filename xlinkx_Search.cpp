@@ -14,8 +14,6 @@
    limitations under the License.
 */
 
-#include <fstream>      // std::ofstream
-
 #include "Common.h"
 #include "xlinkx.h"
 #include "xlinkx_Search.h"
@@ -390,13 +388,20 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
        num_pep2,
        num_pep_combined;
 
+   char szProt1[128];
+   char szProt2[128];
+
 #define LYSINE_MOD 197.032422
 
    char *toppep1[NUMPEPTIDES], *toppep2[NUMPEPTIDES], *toppepcombined[NUMPEPTIDES];
    float xcorrPep1[NUMPEPTIDES], xcorrPep2[NUMPEPTIDES], xcorrCombined[NUMPEPTIDES];
 
-   std::ofstream ofs;
-   ofs.open (pep_output_file, std::ofstream::out | std::ofstream::trunc);
+   FILE *fptxt;
+   if ((fptxt=fopen(pep_output_file, "w")) == NULL)
+   {
+      printf(" Error - cannot write txt output %s\n", pep_output_file);
+      return;
+   }
 
    MSReader mstReader;
    Spectrum mstSpectrum;
@@ -412,7 +417,27 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
    // If PeptideHash not present, generate it now; otherwise open the hash file.
    protein_hash_db_t phdp = phd_retrieve_hash_db(protein_file, params, pep_hash_file);
 
-   ofs << "scan\texp_mass1\texp_mass2\tpeptide1\txcorr1\tevalue1\tcalcmass1\tpeptide2\txcorr2\tevalue2\tcalcmass2\tcombinedxcorr\tcombinedevalue" << endl;
+   fprintf(fptxt, "scan\texp_mass1\texp_mass2\tpeptide1\txcorr1\tevalue1\tcalcmass1\tpeptide2\txcorr2\tevalue2\tcalcmass2\tcombinedxcorr\tcombinedevalue\n"); 
+
+   FILE *fpxml;
+   char szOutput[1024];
+   char szBaseName[1024];
+
+   strcpy(szBaseName, szMZXML);
+   if (!strcmp(szBaseName+strlen(szBaseName)-6, ".mzXML"))
+      szBaseName[strlen(szBaseName)-6]='\0';
+   else if (!strcmp(szBaseName+strlen(szBaseName)-6, ".mzML"))
+      szBaseName[strlen(szBaseName)-5]='\0';
+   sprintf(szOutput, "%s.pep.xml", szBaseName);
+
+   if ((fpxml=fopen(szOutput, "w")) == NULL)
+   {
+      printf(" Error - cannot write pepXML output %s\n", szOutput);
+      return;
+   }
+   int iIndex=0;
+
+   WritePepXMLHeader(fpxml, szBaseName);
 
    if (!g_staticParams.options.bVerboseOutput)
    {
@@ -455,7 +480,7 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
 
          double pep_mass1 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1 - LYSINE_MOD - g_staticParams.precalcMasses.dOH2;
          double pep_mass2 = pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass2 - LYSINE_MOD - g_staticParams.precalcMasses.dOH2;
-         ofs << pvSpectrumList.at(i).iScanNumber << "\t" << pep_mass1 << "\t" << pep_mass2;
+
          if (pep_mass1 <= 0)
          {
             cout << "Peptide mass1 is coming out to be zero after removing Lysine residue" << endl;
@@ -468,6 +493,7 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
             exit(1);
          }
 
+         fprintf(fptxt, "%d\t%f\t%f", pvSpectrumList.at(i).iScanNumber, pep_mass1, pep_mass2);
 
          double dXcorr = 0.0;
          vector<double> vdXcorr_pep1;
@@ -533,6 +559,9 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
                cout << "pep2: " << *peptide << "  xcorr " << dXcorr << endl;
          }
 
+         if (toppep1[0] == NULL || toppep2[0] == NULL)
+            continue;
+
          double dSlope;
          double dIntercept;
          double dExpect;
@@ -566,9 +595,9 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
          }
 
          if (toppep1[0] != NULL)
-            ofs << "\t" << toppep1[0] << "\t" << xcorrPep1[0] << "\t" << dExpect1 << "\t" << phdp->phd_calculate_mass_peptide(string(toppep1[0]));
+            fprintf(fptxt, "\t%s\t%f\t%0.3E\t%f", toppep1[0], xcorrPep1[0], dExpect1, phdp->phd_calculate_mass_peptide(string(toppep1[0])));
          else
-            ofs << "\t-\t0\t999\t0";
+            fprintf(fptxt, "\t-\t0\t999\t0");
 
 
          CalculateEValue(hist_pep2, num_pep2, &dSlope, &dIntercept,
@@ -579,7 +608,7 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
             xlinkx_print_histogram(hist_pep2);
             cout << "Top "<< NUMPEPTIDES << " pep2 peptides for this scan are " << endl;
          }
-         dExpect1 = 999;
+         double dExpect2 = 999;
          for (int li = 0; li < NUMPEPTIDES; li++)
          {
             if (toppep2[li] != NULL)
@@ -590,7 +619,7 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
                   dExpect = pow(10.0, dSlope * xcorrPep2[li] + dIntercept);
 
                if (li == 0)
-                  dExpect1 = dExpect;
+                  dExpect2 = dExpect;
 
                if (g_staticParams.options.bVerboseOutput)
                   cout << "pep2_top: " << toppep2[li] << " xcorr " << xcorrPep2[li] << " expect " << dExpect << endl;
@@ -598,9 +627,9 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
          }
 
          if (toppep2[0] != NULL)
-            ofs << "\t" << toppep2[0] << "\t" << xcorrPep2[0] << "\t" << dExpect1 << "\t" << phdp->phd_calculate_mass_peptide(string(toppep2[0]));
+            fprintf(fptxt, "\t%s\t%f\t%0.3E\t%f", toppep2[0], xcorrPep2[0], dExpect2, phdp->phd_calculate_mass_peptide(string(toppep2[0])));
          else
-            ofs << "\t-\t0\t999\t0";
+            fprintf(fptxt, "\t-\t0\t999\t0");
 
          if (g_staticParams.options.bVerboseOutput)
             cout << "Size of peptide1 list is " << num_pep1 << " and the size of peptide2 list is " << num_pep2 << endl;
@@ -643,6 +672,7 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
             }
          }
 
+         double dExpectCombined = 999;
          for (int li = 0; li < NUMPEPTIDES; li++)
          {
             if (toppepcombined[li] != NULL)
@@ -656,10 +686,26 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
                   cout << "combined: " << toppepcombined[li] << " xcorr " << xcorrCombined[li] << " expect " << dExpect << endl;
 
                if (li == 0)
-                  ofs << "\t" << xcorrCombined[li] << "\t" << dExpect << endl;
+               {
+                  fprintf(fptxt, "\t%f\t%0.3E\n",  xcorrCombined[li], dExpect);
+                  dExpectCombined = dExpect;
+               }
             }
          }
 
+
+         strcpy(szProt1, "prot1");
+         strcpy(szProt2, "prot2");
+      
+         WriteSpectrumQuery(fpxml, szBaseName,
+               pep_mass1, pep_mass2,
+               xcorrPep1[0], xcorrPep2[0],
+               dExpect1, dExpect2,
+               phdp->phd_calculate_mass_peptide(string(toppep1[0])), phdp->phd_calculate_mass_peptide(string(toppep2[0])),
+               xcorrCombined[0], dExpectCombined,
+               toppep1[0], toppep2[0],
+               szProt1, szProt2,
+               pvSpectrumList.at(i).iPrecursorCharge, iIndex, pvSpectrumList.at(i).iScanNumber);
       }
 
       if (!g_staticParams.options.bVerboseOutput)
@@ -670,10 +716,15 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
       }
    }
 
+   fprintf(fpxml, "  </msms_run_summary>\n");
+   fprintf(fpxml, "</msms_pipeline_analysis>\n");
+
+
    if (!g_staticParams.options.bVerboseOutput)
      printf("\n\nDone.\n");
 
-   ofs.close();
+   fclose(fptxt);
+   fclose(fpxml);
 }
 
 
@@ -760,3 +811,89 @@ bool xlinkx_Search::WithinTolerance(double dMass1,
    else
       return false;
 }
+
+
+void xlinkx_Search::WritePepXMLHeader(FILE *fpxml,
+                                      char *szBaseName)
+{
+
+   fprintf(fpxml, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+   fprintf(fpxml, "<msms_pipeline_analysis date= \"2016-11-16T15:59:37\" summary_xml=\"/net/pr/vol1/ProteomicsResource/search/engj/20161216-high-lo-xlinkx/%s.pep.xml\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://regis-web.systemsbiology.net/pepXML http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v120.xsd\">\n", szBaseName);
+   fprintf(fpxml, " <msms_run_summary base_name=\"/net/pr/vol1/ProteomicsResource/search/engj/20161216-high-lo-xlinkx/%s\" raw_data_type=\"raw\" raw_data=\".mzXML\">\n", szBaseName);
+   fprintf(fpxml, "  <sample_enzyme name=\"trypsin\">\n");
+   fprintf(fpxml, "   <specificity cut=\"KR\" no_cut=\"P\" sense=\"C\"/>\n");
+   fprintf(fpxml, "  </sample_enzyme>\n");
+   fprintf(fpxml, "  <search_summary base_name=\"/net/pr/vol1/ProteomicsResource/search/engj/20161216-high-lo-xlinkx/%s\" search_engine=\"Kojak\" search_engine_version=\"1.0.0\" precursor_mass_type=\"monoisotopic\" fragment_mass_type=\"monoisotopic\" search_id=\"1\">\n", szBaseName);
+   fprintf(fpxml, "   <search_database local_path=\"/net/pr/vol1/ProteomicsResource/search/engj/20161216-high-lo-xlinkx/HUMAN.fasta.20160308\" type=\"AA\"/>\n");
+   fprintf(fpxml, "   <enzymatic_search_contstraint enzyme=\"Trypsin\" max_num_internal_cleavages=\"1\" min_number_termini=\"2\"/>\n");
+   fprintf(fpxml, "   <parameter name=\"ion_series_A\" value=\"0\"/>\n");
+   fprintf(fpxml, "   <parameter name=\"ion_series_B\" value=\"1\"/>\n");
+   fprintf(fpxml, "   <parameter name=\"ion_series_C\" value=\"0\"/>\n");
+   fprintf(fpxml, "   <parameter name=\"ion_series_X\" value=\"0\"/>\n");
+   fprintf(fpxml, "   <parameter name=\"ion_series_Y\" value=\"1\"/>\n");
+   fprintf(fpxml, "   <parameter name=\"ion_series_Z\" value=\"0\"/>\n");
+   fprintf(fpxml, "  </search_summary>\n");
+}
+
+
+void xlinkx_Search::WriteSpectrumQuery(FILE *fpxml,
+                                       char *szBaseName,
+                                       double dExpMass1,
+                                       double dExpMass2,
+                                       double dXcorr1,
+                                       double dXcorr2,
+                                       double dExpect1,
+                                       double dExpect2,
+                                       double dCalcMass1,
+                                       double dCalcMass2,
+                                       double dXcorrCombined,
+                                       double dExpectCombined,
+                                       char *szPep1,
+                                       char *szPep2,
+                                       char *szProt1,
+                                       char *szProt2,
+                                       int iCharge,
+                                       int iIndex,
+                                       int iScan) 
+{                         
+   int i;
+   double xl = 300.0;
+   
+   fprintf(fpxml, "  <spectrum_query spectrum=\"%s.%d.%d.%d\" start_scan=\"%d\" end_scan=\"%d\" precursor_neutral_mass=\"%0.6f\" assumed_charge=\"%d\" index=\"%d\">\n",
+         szBaseName, iScan, iScan, iCharge, iScan, iScan, dExpMass1+dExpMass2+xl, iCharge, ++iIndex);
+   fprintf(fpxml, "   <search_result>\n");
+   fprintf(fpxml, "    <search_hit hit_rank=\"1\" peptide=\"-\" peptide_prev_aa=\"-\" peptide_next_aa=\"-\" protein=\"-\" num_tot_proteins=\"1\" calc_neutral_pep_mass=\"%0.6f\" massdiff=\"%0.6f\" xlink_type=\"xl\">\n",
+         dCalcMass1+dCalcMass2+xl, (dCalcMass1+dCalcMass2)-(dExpMass1+dExpMass2));
+   fprintf(fpxml, "     <xlink identifier=\"BDP-NHP\" mass=\"200.00\">\n");
+   fprintf(fpxml, "      <linked_peptide peptide=\"%s\" peptide_prev_aa=\"-\" peptide_next_aa=\"-\" protein=\"%s\" num_tot_proteins=\"1\" calc_neutral_pep_mass=\"%0.6f\" complement_mass=\"%0.6f\" designation=\"alpha\">\n",
+         szPep1, szProt1, dCalcMass1, dCalcMass2+xl);
+   fprintf(fpxml, "       <modification_info>\n");
+   for (i=0; i<strlen(szPep1); i++)
+      if (szPep1[i]=='K')
+         break;
+   fprintf(fpxml, "        <mod_aminoacid_mass position=\"%d\" mass=\"325.127385\"/>\n", i+1);
+   fprintf(fpxml, "       </modification_info>\n");
+   fprintf(fpxml, "       <xlink_score name=\"score\" value=\"%0.3E\"/>\n", dExpect1);
+// fprintf(fpxml, "       <xlink_score name=\"xcorr\" value=\"%0.3f\"/>\n", dXcorr1);
+   fprintf(fpxml, "      </linked_peptide>\n");
+   fprintf(fpxml, "      <linked_peptide peptide=\"%s\" peptide_prev_aa=\"-\" peptide_next_aa=\"-\" protein=\"%s\" num_tot_proteins=\"1\" calc_neutral_pep_mass=\"%0.6f\" complement_mass=\"%0.6f\" designation=\"beta\">\n",
+         szPep2, szProt2, dCalcMass2, dCalcMass1+xl);
+   fprintf(fpxml, "       <modification_info>\n");
+   for (i=0; i<strlen(szPep2); i++)
+      if (szPep2[i]=='K')
+         break;
+   fprintf(fpxml, "        <mod_aminoacid_mass position=\"%d\" mass=\"325.127385\"/>\n", i+1);
+   fprintf(fpxml, "       </modification_info>\n");
+   fprintf(fpxml, "       <xlink_score name=\"score\" value=\"%0.3E\"/>\n", dExpect2);
+// fprintf(fpxml, "       <xlink_score name=\"delta_score\" value=\"%0.3f\"/>\n", dXcorr2);
+   fprintf(fpxml, "      </linked_peptide>\n");
+   fprintf(fpxml, "     </xlink>\n");
+   fprintf(fpxml, "     <search_score name=\"kojak_score\" value=\"%0.3E\"/>\n", dExpectCombined);
+   fprintf(fpxml, "     <search_score name=\"delta_score\" value=\"%0.3f\"/>\n", dXcorrCombined);
+   fprintf(fpxml, "     <search_score name=\"ppm_error\" value=\"0.0\"/>\n");
+   fprintf(fpxml, "    </search_hit>\n");
+   fprintf(fpxml, "   </search_result>\n");
+   fprintf(fpxml, "  </spectrum_query>\n");
+   
+}
+

@@ -60,6 +60,28 @@ private:
                                    int *hist_pep,
                                    int iScanNumber);
 
+   static void WritePepXMLHeader(FILE *fpxml,
+                                 char *szBaseName);
+
+   static void WriteSpectrumQuery(FILE *fpxml,
+                                  char *szBaseName,
+                                  double dExpMass1,
+                                  double dExpMass2,
+                                  double dXcorr1,
+                                  double dXcorr2,
+                                  double dExpect1,
+                                  double dExpect2,
+                                  double dCalcMass1,
+                                  double dCalcMass2,
+                                  double dXcorrCombined,
+                                  double dExpectCombined,
+                                  char *szPep1,
+                                  char *szPep2,
+                                  char *szProt1,
+                                  char *szProt2,
+                                  int iCharge,
+                                  int iIndex,
+                                  int iScan);
 
    // Private static methods
 
