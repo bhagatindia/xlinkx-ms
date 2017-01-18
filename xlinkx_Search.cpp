@@ -468,8 +468,9 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
 
          if (g_staticParams.options.bVerboseOutput)
          {
-            printf("Scan %d, retrieving peptides of mass %0.4f (%d+ %0.4f) and %0.4f (%d+ %0.4f)\n",
+            printf("Scan %d (i=%d), retrieving peptides of mass %0.4f (%d+ %0.4f) and %0.4f (%d+ %0.4f)\n",
                   pvSpectrumList.at(i).iScanNumber,
+                  i,
                   pvSpectrumList.at(i).pvdPrecursors.at(ii).dNeutralMass1,
                   pvSpectrumList.at(i).pvdPrecursors.at(ii).iCharge1,
                   dMZ1,
@@ -693,10 +694,13 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
             }
          }
 
-
          strcpy(szProt1, "prot1");
          strcpy(szProt2, "prot2");
       
+         int iCharge = (pvSpectrumList.at(i).pvdPrecursors.at(ii).iCharge1>pvSpectrumList.at(i).pvdPrecursors.at(ii).iCharge2
+               ? pvSpectrumList.at(i).pvdPrecursors.at(ii).iCharge1
+               : pvSpectrumList.at(i).pvdPrecursors.at(ii).iCharge2);
+
          WriteSpectrumQuery(fpxml, szBaseName,
                pep_mass1, pep_mass2,
                xcorrPep1[0], xcorrPep2[0],
@@ -705,7 +709,9 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
                xcorrCombined[0], dExpectCombined,
                toppep1[0], toppep2[0],
                szProt1, szProt2,
-               pvSpectrumList.at(i).iPrecursorCharge, iIndex, pvSpectrumList.at(i).iScanNumber);
+//             pvSpectrumList.at(i).iPrecursorCharge,
+               iCharge,                                     // report largest charge of the two released peptides
+               iIndex, pvSpectrumList.at(i).iScanNumber);
       }
 
       if (!g_staticParams.options.bVerboseOutput)

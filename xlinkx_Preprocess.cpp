@@ -90,13 +90,13 @@ void xlinkx_preprocess::LoadAndPreprocessSpectra(MSReader &mstReader,
          if (CheckActivationMethodFilter(mstSpectrum.getActivationMethod()))
          {
             int i=0;
+
             PreprocessSpectrum(mstSpectrum,
                   dMZ1,
                   dMZ2,
                   ppdTmpRawDataArr[i],
                   ppdTmpFastXcorrDataArr[i],
                   ppdTmpCorrelationDataArr[i]);
-
          }
       }
    }
@@ -210,9 +210,10 @@ bool xlinkx_preprocess::Preprocess(struct Query *pScoring,
    {
       if (i<pScoring->_spectrumInfoInternal.iArraySize)
          dSum += pdTmpCorrelationData[i];
-      if (i>=iTmpRange)
+      if (i>=iTmpRange && i-iTmpRange < pScoring->_spectrumInfoInternal.iArraySize)
          dSum -= pdTmpCorrelationData[i-iTmpRange];
-      pdTmpFastXcorrData[i-g_staticParams.iXcorrProcessingOffset] = (dSum - pdTmpCorrelationData[i-g_staticParams.iXcorrProcessingOffset])* dTmp;
+      if (i-g_staticParams.iXcorrProcessingOffset >=0 && i-g_staticParams.iXcorrProcessingOffset < pScoring->_spectrumInfoInternal.iArraySize)
+         pdTmpFastXcorrData[i-g_staticParams.iXcorrProcessingOffset] = (dSum - pdTmpCorrelationData[i-g_staticParams.iXcorrProcessingOffset])* dTmp;
    }
 
    pScoring->pfFastXcorrData[0] = 0.0;
@@ -469,6 +470,9 @@ bool xlinkx_preprocess::PreprocessSpectrum(Spectrum &spec,
       int iPrecursorCharge = spec.atZ(z).z;  // I need this before iChargeState gets assigned.
       double dMass = spec.atZ(z).mh;
       Query *pScoring = new Query();
+
+      if (dMass >= g_staticParams.options.dPeptideMassHigh)
+         continue;
 
       pScoring->_pepMassInfo.dExpPepMass = dMass;
       pScoring->_spectrumInfoInternal.iChargeState = iPrecursorCharge;

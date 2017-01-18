@@ -3,7 +3,7 @@
 
 #define SIZE_BUF    8192
 #define SIZE_FILE   512
-#define MAX_PEAKS   500
+#define MAX_PEAKS   1000
 
 using namespace std;
 

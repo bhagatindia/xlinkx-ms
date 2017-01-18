@@ -51,7 +51,7 @@ int main(int argc, char **argv)
    READ_HK2(szHK2);
 
    // Load and preprocess all MS/MS scans that have a pair of peptide masses that add up to precursor
-   g_staticParams.tolerances.dFragmentBinSize = 1.0005;
+   g_staticParams.tolerances.dFragmentBinSize = 0.02;   // 1.0005;
    g_staticParams.dInverseBinWidth = 1.0 /g_staticParams.tolerances.dFragmentBinSize;
 
    int iCount=0;
@@ -475,7 +475,7 @@ void READ_HK2(char *szHK)
 
 int WITHIN_TOLERANCE(double dMass1, double dMass2)
 {
-   double dPPM = 20.0;
+   double dPPM = 50.0;
 
    if (1E6 * fabs(dMass1 - dMass2)/dMass2 <= dPPM)
       return 1;
