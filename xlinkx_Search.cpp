@@ -445,6 +445,29 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
       fflush(stdout);
    }
 
+/*
+   int iHistoSize[10];
+   int iNonEmptyScan = 0;
+   for (int x=0; x<10; x++)
+      iHistoSize[x]=0;
+   for (i=0; i<(int)pvSpectrumList.size(); i++)
+   {
+      int x = (int)pvSpectrumList.at(i).pvdPrecursors.size();
+      if (x>9)
+         x=9;
+
+      iHistoSize[x] += 1;
+      
+      if (x>0)
+         iNonEmptyScan++;
+   }
+
+   printf("totalscans %d, nonempty %d\n", (int)pvSpectrumList.size(), iNonEmptyScan);
+   for (int x=0; x<10; x++)
+      printf("%d.  %d\n", x, iHistoSize[x]);
+   exit(1);
+*/
+
    for (i=0; i<(int)pvSpectrumList.size(); i++)
    {
       for (ii=0; ii<(int)pvSpectrumList.at(i).pvdPrecursors.size(); ii++)
@@ -461,7 +484,8 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
 
          xlinkx_preprocess::LoadAndPreprocessSpectra(mstReader, pvSpectrumList.at(i).iScanNumber, dMZ1, dMZ2);
  
-         for (int li = 0; li < NUMPEPTIDES; li++) {
+         for (int li = 0; li < NUMPEPTIDES; li++)
+         {
             xcorrPep1[li] = xcorrPep2[li] = xcorrCombined[li] = -99999;
             toppep1[li] = toppep2[li] = toppepcombined[li] = NULL;
          }
@@ -497,7 +521,7 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
          fprintf(fptxt, "%d\t%f\t%f", pvSpectrumList.at(i).iScanNumber, pep_mass1, pep_mass2);
 
          double dXcorr = 0.0;
-         vector<double> vdXcorr_pep1;
+         vector<double> vdXcorr_pep1;  // store xcorr scores to be used in combined histogram
          vector<double> vdXcorr_pep2;
 
          if (g_staticParams.options.bVerboseOutput)

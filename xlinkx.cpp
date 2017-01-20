@@ -15,6 +15,7 @@
 // that add up to ReACT relationship; need mzXML for precursor mass.
 
 vector<ScanDataStruct> pvSpectrumList;
+struct ParamsStruct pParams;
 
 int main(int argc, char **argv)
 {
@@ -206,8 +207,8 @@ void READ_HK1(char *szHK)
 
    if ( (fp=fopen(szHK, "r"))== NULL)
    {
-      printf("Please generate .hk1 file with same base name as .mzXML input.\n");
-      exit(1);
+      // Cannot read Hardklor file; try to generate it.
+      GENERATE_HK(szHK);
 
       // Instead of reporting error above, generate HK1 file here.
       // This requires creating a Hardklor params file and executing hardklor.
@@ -302,10 +303,11 @@ void READ_HK2(char *szHK)
 
    if ( (fp=fopen(szHK, "r"))== NULL)
    {
-      printf("Please generate .hk2 file with same base name as .mzXML input.\n");
-      exit(1);
+      // Cannot read Hardklor file; try to generate it.
+      GENERATE_HK(szHK);
 
-      // generate HK file here
+      // Instead of reporting error above, generate HK1 file here.
+      // This requires creating a Hardklor params file and executing hardklor.
 
       // run Hardklor
 
@@ -470,6 +472,100 @@ void READ_HK2(char *szHK)
 
    printf("100%%\n");
    fclose(fp);
+}
+
+
+void GENERATE_HK(char *szHK)
+{
+   int iResolution;
+   int iMSLevel;
+   int iChargeMin;
+   int iChargeMax;
+   char szConf[SIZE_FILE];
+   char szBaseName[SIZE_FILE];
+   char szCmd[SIZE_BUF];
+
+   strcpy(szBaseName, szHK);
+   szBaseName[strlen(szBaseName)-4]='\0';
+
+   if (!strcmp(szHK+strlen(szHK)-4, ".hk1"))
+   {
+      sprintf(szConf, "%s.conf1", szBaseName);
+
+      iResolution = 70000; //iResolutionMS1;
+      iMSLevel = 1;
+      iChargeMin = 1; //iChargeMin1;
+      iChargeMax = 8; //iChargeMax1;
+   }
+   else
+   {
+      sprintf(szConf, "%s.conf2", szBaseName);
+
+      iResolution = 17500; //iResolutionMS2;
+      iMSLevel = 2;
+      iChargeMin = 1;//iChargeMin2;
+      iChargeMax = 9;//iChargeMax2;
+   }
+
+   FILE *fp;
+   if ((fp=fopen(szConf, "w"))==NULL)
+   {
+      fprintf(stderr, " Error - cannot read or write %s\n", szConf);
+      exit(1);
+   }
+  
+   fprintf(fp, "# Hardkor parameter file\n");
+   fprintf(fp, "isotope_data = /net/pr/vol1/ProteomicsResource/bin/hardklor_files/ISOTOPE.DAT\n");
+   fprintf(fp, "hardklor_data = /net/pr/vol1/ProteomicsResource/bin/hardklor_files/Hardklor.dat\n");
+   fprintf(fp, "\n");
+   fprintf(fp, "\n");
+   fprintf(fp, "# Parameters used to described the data being input to Hardklor\n");
+   fprintf(fp, "instrument = Orbitrap\n");
+   fprintf(fp, "resolution = %d\n", iResolution);
+   fprintf(fp, "centroided = 1\n");
+   fprintf(fp, "\n");
+   fprintf(fp, "# Parameters used in preprocessing spectra prior to analysis\n");
+   fprintf(fp, "ms_level = 1\n");
+   fprintf(fp, "scan_range_min = 0\n");
+   fprintf(fp, "scan_range_max = 0\n");
+   fprintf(fp, "signal_to_noise = 0\n");
+   fprintf(fp, "sn_window = 250.0\n");
+   fprintf(fp, "static_sn = 0\n");
+   fprintf(fp, "boxcar_averaging = 0\n");
+   fprintf(fp, "boxcar_filter = 0\n");
+   fprintf(fp, "\n");
+   fprintf(fp, "boxcar_filter_ppm = 10\n");
+   fprintf(fp, "mz_min = 0\n");
+   fprintf(fp, "mz_max = 0\n");
+   fprintf(fp, "smooth = 0\n");
+   fprintf(fp, "\n");
+   fprintf(fp, "# Parameters used to customize the Hardklor analysis.\n");
+   fprintf(fp, "algorithm = Version2\n");
+   fprintf(fp, "charge_algorithm = Quick\n");
+   fprintf(fp, "\n");
+   fprintf(fp, "charge_min = %d\n", iChargeMin);
+   fprintf(fp, "charge_max = %d\n", iChargeMax);
+   fprintf(fp, "correlation = 0.90\n");
+   fprintf(fp, "averagine_mod = 0\n");
+   fprintf(fp, "\n");
+   fprintf(fp, "mz_window = 5.25\n");
+   fprintf(fp, "sensitivity = 3\n");
+   fprintf(fp, "\n");
+   fprintf(fp, "depth = 2\n");
+   fprintf(fp, "\n");
+   fprintf(fp, "max_features = 10\n");
+   fprintf(fp, "\n");
+   fprintf(fp, "# Parameters used to customize the Hardklor output\n");
+   fprintf(fp, "distribution_area = 0\n");
+   fprintf(fp, "xml = 0\n");
+   fprintf(fp, "\n");
+   fprintf(fp, "%s.mzXML %s.hk%d\n", szBaseName, szBaseName, iMSLevel);
+
+   fclose(fp);
+
+   printf("\n");
+   sprintf(szCmd, "hardklor %s", szConf);
+   system(szCmd);
 }
 
 

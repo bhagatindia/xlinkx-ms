@@ -45,12 +45,28 @@ struct ScanDataStruct
    vector<PrecursorsStruct> pvdPrecursors;
 };
 
+struct ParamsStruct
+{
+   int iResolution1;
+   int iResolution2;
+   int iChargeMin1;
+   int iChargeMin2;
+   int iChargeMax1;
+   int iChargeMax2;
+
+   double dToleranceMS1;
+   double dToleranceMS2;
+   double dMassReporter;
+   double dMassMod;
+};
+
 extern vector<ScanDataStruct> pvSpectrumList;
 
 
 void READ_MZXMLSCANS(char *szMZXML);
 void READ_HK1(char *szHK);
 void READ_HK2(char *szHK);
+void GENERATE_HK(char *szHK);
 int WITHIN_TOLERANCE(double dMass1, double dMass2);
 
 
