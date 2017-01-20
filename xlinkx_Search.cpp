@@ -374,8 +374,7 @@ bool xlinkx_Search::GenerateXcorrDecoys(double dNeutralPepMass,
 void xlinkx_Search::SearchForPeptides(char *szMZXML,
                                       const char *protein_file,
                                       enzyme_cut_params params,
-                                      const char *pep_hash_file,
-                                      const char *pep_output_file)
+                                      const char *pep_hash_file)
 {
    int i;
    int ii;
@@ -390,16 +389,20 @@ void xlinkx_Search::SearchForPeptides(char *szMZXML,
 
    char szProt1[128];
    char szProt2[128];
+   char szOutputTxt[SIZE_FILE];
 
 #define LYSINE_MOD 197.032422
 
    char *toppep1[NUMPEPTIDES], *toppep2[NUMPEPTIDES], *toppepcombined[NUMPEPTIDES];
    float xcorrPep1[NUMPEPTIDES], xcorrPep2[NUMPEPTIDES], xcorrCombined[NUMPEPTIDES];
 
+   strcpy(szOutputTxt, szMZXML);
+   szOutputTxt[strlen(szOutputTxt)-5]='\0';
+   strcat(szOutputTxt, "txt");
    FILE *fptxt;
-   if ((fptxt=fopen(pep_output_file, "w")) == NULL)
+   if ((fptxt=fopen(szOutputTxt, "w")) == NULL)
    {
-      printf(" Error - cannot write txt output %s\n", pep_output_file);
+      printf(" Error - cannot write txt output %s\n", szOutputTxt);
       return;
    }
 

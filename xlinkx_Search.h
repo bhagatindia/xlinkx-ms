@@ -31,7 +31,6 @@ public:
    static void SearchForPeptides(char *szMZXML,
                                  const char *,
                                  enzyme_cut_params,
-                                 const char *,
                                  const char *);
    static bool WithinTolerance(double dMass1,
                                double dMass2);

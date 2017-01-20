@@ -23,10 +23,10 @@ int main(int argc, char **argv)
    char szHK2[SIZE_FILE];
    char szMZXML[SIZE_FILE];
 
-   if (argc != 5)
+   if (argc != 4)
    {
-      printf("  USAGE:  xlinkx input.mzXML protein_database.txt peptide_hash_database.txt output_file.txt\n\n");
-      printf("  Need to enter mzXML file on command line.\n\n");
+      printf("\n  USAGE:  xlinkx input.mzXML protein_database.txt peptide_hash_database.txt\n\n");
+      printf("  Incorrect command line input (need 3 input arguments).\n\n", argc);
       exit(1);
    }
 
@@ -124,7 +124,7 @@ int main(int argc, char **argv)
    params.postnocut_amino = "P";
 
    // Now open fasta file and get a list of all peptides with masses close to 
-   xlinkx_Search::SearchForPeptides(szMZXML, argv[2], params, argv[3], argv[4]);
+   xlinkx_Search::SearchForPeptides(szMZXML, argv[2], params, argv[3]);
 
    return 0;
 
@@ -145,6 +145,7 @@ void READ_MZXMLSCANS(char *szMZXML)
    vector<MSSpectrumType> msLevel;
    msLevel.push_back(MS1);
    msLevel.push_back(MS2);
+   msLevel.push_back(MS3);
 
    mstReader.setFilter(msLevel);
    mstReader.readFile(szMZXML, mstSpectrum, 1);
@@ -179,8 +180,7 @@ void READ_MZXMLSCANS(char *szMZXML)
       }
       else
       {
-         printf(" Error ... should never get here (msLevel).\n");
-         exit(1);
+         continue;  // skip any MS3 scans
       }
 
       if (!(iScanNumber%200))
